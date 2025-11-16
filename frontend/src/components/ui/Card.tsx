@@ -9,6 +9,7 @@ const Card = ({card}: CardProps) => {
 
     return (
         <img
+            className="w-16"
             src={imageUrl}
             alt={card || "Card"}
         />
