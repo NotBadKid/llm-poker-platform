@@ -5,16 +5,15 @@ import config
 
 def get_llm_action(model_id: str, prompt_json: dict) -> dict | None:
     """
-    Wysyła prompt do określonego modelu LLM przez OpenRouter i zwraca
-    sparsowaną odpowiedź JSON.
+    Sends prompt to specified by openRouter LLM model and returns parsed JSON response
 
     Args:
-        model_id (str): Nazwa modelu na OpenRouter (np. "openai/gpt-4o")
-        prompt_json (dict): Cały obiekt JSON, który ma być wysłany.
+        model_id (str): Model name on openRouter (eg. "openai/gpt-4o")
+        prompt_json (dict): Whole JSON object to be sent.
 
     Returns:
-        dict | None: Słownik z akcją (np. {"action": "bet", ...}) lub
-                     None w przypadku błędu.
+        dict | None: Dict with action (eg. {"action": "bet", ...}) or
+                     None in case of error.
     """
 
     prompt_content = json.dumps(prompt_json)
@@ -41,7 +40,7 @@ def get_llm_action(model_id: str, prompt_json: dict) -> dict | None:
         ]
     }
 
-    print(f"[LLM Manager] Wysyłanie żądania do modelu: {model_id}...")
+    print(f"[LLM Manager] Sending prompt to model: {model_id}...")
 
     try:
         response = requests.post(
@@ -58,25 +57,25 @@ def get_llm_action(model_id: str, prompt_json: dict) -> dict | None:
         print(response_data)
         llm_response_content = response_data['choices'][0]['message']['content']
 
-        print(f"[LLM Manager] Otrzymano odpowiedź: {llm_response_content}")
+        print(f"[LLM Manager] Received response: {llm_response_content}")
 
         try:
             action_json = json.loads(llm_response_content)
             if "action" not in action_json:
-                print(f"[LLM Manager] Błąd: 'action' brak w odpowiedzi LLM.")
+                print(f"[LLM Manager] Error: no 'action' field in LLM response.")
                 return None
 
             return action_json
 
         except json.JSONDecodeError:
-            print(f"[LLM Manager] Błąd: Model LLM nie zwrócił poprawnego JSON-a.")
-            print(f"Otrzymano: {llm_response_content}")
+            print(f"[LLM Manager] Error: LLM model did not return proper JSON format.")
+            print(f"Received: {llm_response_content}")
             return None
 
     except requests.exceptions.RequestException as e:
-        print(f"[LLM Manager] Błąd API OpenRouter: {e}")
+        print(f"[LLM Manager] OpenRouter API error: {e}")
         return None
     except KeyError:
-        print(f"[LLM Manager] Błąd: Nieoczekiwany format odpowiedzi od OpenRouter.")
-        print(f"Otrzymano: {response.text}")
+        print(f"[LLM Manager] Error: Unexpected response format from OpenRouter.")
+        print(f"Received: {response.text}")
         return None

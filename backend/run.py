@@ -1,7 +1,7 @@
 from app import create_app, socketio
 from dotenv import load_dotenv
 
-# Wczytaj zmienne środowiskowe (np. OPENROUTER_API_KEY) z pliku .env
+# Load env variables from .env file
 load_dotenv()
 
 app = create_app()

@@ -7,8 +7,8 @@ try:
     import poker_engine
 except ImportError:
     print("="*50)
-    print("OSTRZEŻENIE: Nie można zaimportować 'poker_engine'.")
-    print("Serwer będzie działał, ale nie będzie można uruchomić gry.")
+    print("WARNING: Could not import 'poker_engine'.")
+    print("Serwer will work, without possibility to run game.")
     print("="*50)
     poker_engine = None #TODO
 
@@ -16,18 +16,18 @@ except ImportError:
 @main_bp.route('/game/start', methods=['POST'])
 def start_game():
     """
-    Endpoint HTTP POST do rozpoczynania nowej gry.
-    Przyjmuje konfigurację gry i uruchamia game_engine w osobnym wątku.
+    HTTP POST Endpoint for starting the game.
+    Gets the configuration and starts the game in a seperate thread.
     """
     game_config = request.get_json()
 
     if not game_config or 'players' not in game_config:
-        return jsonify({"error": "Brak konfiguracji graczy ('players')"}), 400
+        return jsonify({"error": "Missing player config ('players')"}), 400
 
     if not poker_engine:
-        return jsonify({"error": "Silnik gry (poker_engine) nie jest dostępny."}), 500
+        return jsonify({"error": "poker_engine not available."}), 500
 
-    print(f"[Routes] Otrzymano żądanie startu gry z graczami: {game_config.get('players')}")
+    print(f"[Routes] Received start game request with players: {game_config.get('players')}")
 
     game_thread = threading.Thread(
         target=poker_engine.start_game_session, #TODO: metoda start_game_session

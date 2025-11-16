@@ -6,10 +6,10 @@ socketio = SocketIO(async_mode='threading', cors_allowed_origins="*")
 
 
 def create_app():
-    """Tworzy i konfiguruje główną aplikację Flask."""
+    """Creates and configures the Flask app."""
 
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = "bardzo_tajny_klucz_do_zmiany!"  # Wymagane przez SocketIO
+    app.config["SECRET_KEY"] = "bardzo_tajny_klucz_do_zmiany!"  # required by SocketIO
 
     socketio.init_app(app)
 

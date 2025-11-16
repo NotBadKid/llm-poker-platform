@@ -3,14 +3,13 @@ from app import socketio
 @socketio.on('connect')
 def handle_connect():
     """
-    Loguje informacje, gdy nowy klient (przeglądarka)
-    pomyślnie połączy się przez WebSocket.
+    Logs info when new connection was established with websocket.
     """
-    print("[SocketIO] Nowy klient połączony.")
+    print("[SocketIO] New client connected!.")
 
 @socketio.on('disconnect')
 def handle_disconnect():
     """
-    Loguje informacje, gdy klient się rozłączy.
+    Logs info when client disconnected
     """
-    print("[SocketIO] Klient rozłączony.")
+    print("[SocketIO] Client disconnected!.")
