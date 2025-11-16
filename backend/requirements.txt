@@ -1,0 +1,5 @@
+flask
+flask-socketio
+pokerkit
+python-engineio
+python-socketio

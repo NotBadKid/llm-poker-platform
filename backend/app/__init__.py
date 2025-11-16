@@ -1,13 +1,13 @@
+from flask import Flask
 from flask_socketio import SocketIO
 
-from flask import Flask
-from config import config_by_name
-
-
 socketio = SocketIO(cors_allowed_origins="*")
-def create_app(config_name='default'):
+
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_by_name[config_name])
-    socketio.init_app(app)
-    from . import events
+    app.config.from_object("app.config.Config")
+
+    from .socket import register_socket_handlers
+    register_socket_handlers(socketio)
+
     return app
