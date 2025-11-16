@@ -1,13 +1,22 @@
 from flask import Flask
 from flask_socketio import SocketIO
+import config
 
-socketio = SocketIO(cors_allowed_origins="*")
+socketio = SocketIO(async_mode='threading', cors_allowed_origins="*")
+
 
 def create_app():
-    app = Flask(__name__)
-    app.config.from_object("app.config.Config")
+    """Tworzy i konfiguruje główną aplikację Flask."""
 
-    from .socket import register_socket_handlers
-    register_socket_handlers(socketio)
+    app = Flask(__name__)
+    app.config["SECRET_KEY"] = "bardzo_tajny_klucz_do_zmiany!"  # Wymagane przez SocketIO
+
+    socketio.init_app(app)
+
+    from .routes import main_bp
+
+    app.register_blueprint(main_bp)
+
+    from . import ws_events
 
     return app
