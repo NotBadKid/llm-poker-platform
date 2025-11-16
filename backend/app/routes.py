@@ -1,19 +1,39 @@
-from flask import Blueprint, jsonify, request
-from .poker.game_manager import game_manager
+from flask import request, jsonify, Blueprint
+import threading
 
-routes_bp = Blueprint("routes", __name__)
+main_bp = Blueprint('main', __name__)
+
+try:
+    from app.poker import poker_engine
+except ImportError as e: # Dobrą praktyką jest złapanie wyjątku jako 'e'
+    print("="*50)
+    # Teraz możemy nawet wydrukować prawdziwy błąd, jeśli nadal występuje
+    print(f"WARNING: Could not import 'app.poker.poker_engine'. Error: {e}")
+    print("Server will run, but starting a game will fail.")
+    print("="*50)
+    poker_engine = None
 
 
-@routes_bp.route("/state", methods=["GET"])
-def get_state():
-    return jsonify(game_manager.export_state())
+@main_bp.route('/game/start', methods=['POST'])
+def start_game():
+    """
+    HTTP POST Endpoint for starting the game.
+    Gets the configuration and starts the game in a seperate thread.
+    """
+    game_config = request.get_json()
 
+    if not game_config or 'players' not in game_config:
+        return jsonify({"error": "Missing player config ('players')"}), 400
 
-@routes_bp.route("/action", methods=["POST"])
-def post_action():
-    data = request.json
-    player_id = data.get("player_id")
-    action = data.get("action")
+    if not poker_engine:
+        return jsonify({"error": "poker_engine not available."}), 500
 
-    game_manager.handle_action(player_id, action)
-    return jsonify({"status": "ok"})
+    print(f"[Routes] Received start game request with players: {game_config.get('players')}")
+
+    game_thread = threading.Thread(
+        target=poker_engine.start_game_session, #TODO: metoda start_game_session
+        args=(game_config,)
+    )
+    game_thread.start()
+
+    return jsonify({"status": "Game session started"}), 202

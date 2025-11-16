@@ -3,3 +3,5 @@ flask-socketio
 pokerkit
 python-engineio
 python-socketio
+requests
+python-dotenv
