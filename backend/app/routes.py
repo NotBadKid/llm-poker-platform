@@ -4,13 +4,14 @@ import threading
 main_bp = Blueprint('main', __name__)
 
 try:
-    import poker_engine
-except ImportError:
+    from app.poker import poker_engine
+except ImportError as e: # Dobrą praktyką jest złapanie wyjątku jako 'e'
     print("="*50)
-    print("WARNING: Could not import 'poker_engine'.")
-    print("Serwer will work, without possibility to run game.")
+    # Teraz możemy nawet wydrukować prawdziwy błąd, jeśli nadal występuje
+    print(f"WARNING: Could not import 'app.poker.poker_engine'. Error: {e}")
+    print("Server will run, but starting a game will fail.")
     print("="*50)
-    poker_engine = None #TODO
+    poker_engine = None
 
 
 @main_bp.route('/game/start', methods=['POST'])
