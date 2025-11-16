@@ -1,1 +1,54 @@
 @import "tailwindcss";
+
+@theme {
+    --color-primary: #070F22;
+    --color-secondary: #030916;
+    --color-tertiary: #0E1B3B;
+}
+
+body {
+    background: var(--color-primary);
+    padding-right: 300px;
+    color: white;
+}
+
+
+@layer components {
+
+    header {
+        @apply w-screen fixed top-0 left-0 z-50 min-h-[10vh] bg-secondary flex items-center pl-[5%];
+
+        h1 {
+            @apply text-3xl;
+        }
+    }
+
+    #sidebar {
+        @apply absolute top-0 right-0 z-100 w-[200px] md:w-[300px] h-full bg-secondary text-center pt-6;
+
+        h2 {
+            @apply text-2xl;
+        }
+    }
+
+    #player-container {
+        @apply bg-tertiary rounded-xl px-4 pb-8 pt-3 border;
+
+        h3 {
+            @apply text-2xl pb-3;
+        }
+
+        p {
+            @apply text-base
+        }
+
+        #current-bet-container {
+            @apply absolute -bottom-3 left-[calc(35%)] rounded-lg border;
+
+            p {
+                @apply text-lg bg-tertiary px-4;
+            }
+        }
+
+    }
+}
