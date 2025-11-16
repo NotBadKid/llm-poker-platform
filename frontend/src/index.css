@@ -51,4 +51,16 @@ body {
         }
 
     }
+
+    #poker-table {
+        @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[420px] rounded-full bg-cover bg-center bg-no-repeat;
+
+        #pot {
+            @apply absolute top-22 left-1/2 -translate-x-1/2 text-center;
+        }
+
+        #cards-container {
+            @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-3
+        }
+    }
 }
