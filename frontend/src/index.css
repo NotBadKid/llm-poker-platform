@@ -8,7 +8,7 @@
 
 body {
     background: var(--color-primary);
-    /*padding-right: 300px;*/
+    padding-right: 300px;
     color: white;
 }
 

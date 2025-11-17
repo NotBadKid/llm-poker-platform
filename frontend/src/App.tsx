@@ -38,7 +38,7 @@ function App() {
     };
 
     return (
-        <main className="text-4xl relative w-full h-screen overflow-hidden bg-slate-900 text-white">
+        <main className="text-4xl w-full h-screen overflow-hidden text-white">
 
             {/* Przycisk START (Widoczny tylko jeśli nie ma jeszcze graczy/gry) */}
             {players.length === 0 && (
