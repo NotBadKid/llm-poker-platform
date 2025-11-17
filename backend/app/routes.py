@@ -30,7 +30,7 @@ def start_game():
     print(f"[Routes] Received start game request with players: {game_config.get('players')}")
 
     game_thread = threading.Thread(
-        target=poker_engine.start_game_session, #TODO: metoda start_game_session
+        target=poker_engine.start_game_session,
         args=(game_config,)
     )
     game_thread.start()

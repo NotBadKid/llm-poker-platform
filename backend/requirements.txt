@@ -5,3 +5,4 @@ python-engineio
 python-socketio
 requests
 python-dotenv
+flask-cors
