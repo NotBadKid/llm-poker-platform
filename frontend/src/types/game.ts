@@ -1,8 +1,9 @@
 export type CardId = string | null;
 
-export interface ChatLog {
+export interface ChatMessage {
     player: string,
-    action: string,
+    action: string | null,
+    amount?: number | null,
     message: string,
 }
 
@@ -26,6 +27,6 @@ export interface GameState {
     communityCards: CardId[],
     players: Player[],
     activePlayer: string | null,
-    chatLog: ChatLog[],
+    chatLog: ChatMessage[],
     lastEvent: LastEvent | null,
 }
