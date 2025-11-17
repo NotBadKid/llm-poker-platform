@@ -1,10 +1,7 @@
 import time
 from math import inf
-# Importujemy teraz klasy, których faktycznie używa biblioteka
 from pokerkit import Automation, Mode, NoLimitTexasHoldem
-# Importujemy 'State' z 'pokerkit.state'
 from pokerkit.state import State
-# NIE IMPORTUJEMY JUŻ 'PlayerStatus'
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 
@@ -25,20 +22,9 @@ def start_game_session(game_config: dict):
     player_map = {i: player for i, player in enumerate(game_config['players'])}
     player_count = len(player_map)
 
-    starting_stacks = [game_config.get('initial_stack', 10000)] * player_count
+    current_stacks = tuple([game_config.get('initial_stack', 10000)] * player_count)
     blinds = (game_config.get('small_blind', 10), game_config.get('big_blind', 20))
-    big_blind = blinds[1]  # We will use this as the min_bet
-
-    state = NoLimitTexasHoldem.create_state(
-        (Automation.STANDARD,),  # Use standard automations
-        False,  # uniform_antes
-        {},  # antes
-        blinds,  # blinds_or_straddles
-        big_blind,  # min_bet
-        tuple(starting_stacks),  # starting_stacks (must be a tuple)
-        player_count,
-        mode=Mode.CASH_GAME
-    )
+    big_blind = blinds[1]
 
     # --- Hand Limit Settings ---
     max_hands_to_play = game_config.get('number_of_hands')
@@ -49,27 +35,42 @@ def start_game_session(game_config: dict):
         print("[Poker Engine] No hand limit set. Game will run until one player remains.")
 
     # --- 2. Main Game Loop (hand after hand) ---
-    while not state.is_game_over():
+    while True:
         if max_hands_to_play is not None and hands_played >= max_hands_to_play:
             print(f"[Poker Engine] Game over: Reached hand limit of {max_hands_to_play}.")
             break
 
-        state.start_hand()
-        hands_played += 1
+        players_with_chips = sum(1 for stack in current_stacks if stack > 0)
+        if players_with_chips <= 1:
+            print("[Poker Engine] Game over: Only one player has chips remaining.")
+            break
 
+        hands_played += 1
         game_story = []
         chat_log = []
         last_event = None
 
-        print(f"\n[Poker Engine] New hand started (#{hands_played}). Dealer: {state.dealer_index}")
+        print(f"\n[Poker Engine] New hand started (#{hands_played}).")
+
+        state = NoLimitTexasHoldem.create_state(
+            (Automation.STANDARD,),  # Use standard automations
+            False,  # uniform_antes
+            {},  # antes
+            blinds,  # blinds_or_straddles
+            big_blind,  # min_bet
+            current_stacks,  # Pass the *current* stacks
+            player_count,
+            mode=Mode.CASH_GAME
+        )
 
         # --- 3. Hand Loop (betting round after betting round) ---
-        while not state.is_hand_over():
-            state.end_betting_round()
-            if state.is_hand_over():
+        while state.status:
+            state.collect_bets()
+
+            if not state.status:
                 break
 
-            player_index = state.next_actor_index
+            player_index = state.actor_index
             if player_index is None:
                 break
             player_data = player_map[player_index]
@@ -112,17 +113,18 @@ def start_game_session(game_config: dict):
 
             time.sleep(0.5)
 
-            # --- 10. End of Hand ---
+        # --- 10. End of Hand ---
         print("[Poker Engine] Hand finished. Settling pot.")
-        state.end_hand()
+
+        current_stacks = tuple(state.stacks)
 
         final_state = build_frontend_state(state, player_map, chat_log, last_event, player_count, hand_over=True)
         broadcaster.broadcast_game_state(final_state)
 
-        if not state.is_game_over():
-            if max_hands_to_play is None or hands_played < max_hands_to_play:
-                print(f"[Poker Engine] Next hand in 5 seconds...")
-                time.sleep(5)
+        players_with_chips_check = sum(1 for stack in current_stacks if stack > 0)
+        if players_with_chips_check > 1 and (max_hands_to_play is None or hands_played < max_hands_to_play):
+            print(f"[Poker Engine] Next hand in 5 seconds...")
+            time.sleep(5)
 
     print("[Poker Engine] Final game state. Session ended.")
 
@@ -135,7 +137,6 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
 
     hole_cards = [card_to_str(c) for c in state.hole_cards[player_index]]
     board_cards = []
-    # state.board_cards to lista list, bierzemy pierwszą (dla gier z 1 boardem)
     if state.board_cards:
         board_cards = [card_to_str(c) for c in state.board_cards[0]]
 
@@ -143,12 +144,13 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
     if state.can_fold:
         legal_moves.append("fold")
     if state.can_check_or_call:
-        if state.bet_to_call == 0:
+        # ZMIANA: Używamy 'checking_or_calling_amount'
+        if state.checking_or_calling_amount == 0:
             legal_moves.append("check")
         else:
             legal_moves.append("call")
     if state.can_complete_bet_or_raise_to:
-        if state.bet_to_call == 0:
+        if state.checking_or_calling_amount == 0:
             legal_moves.append("bet")
         else:
             legal_moves.append("raise")
@@ -158,14 +160,13 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
     for i in range(state.player_count):
         if i == player_index: continue
         opponent_data = player_map[i]
-
         is_active = state.statuses[i]
 
         opponents.append({
             "name": opponent_data['name'],
             "stack": state.stacks[i],
-            "position": "Dealer" if i == state.dealer_index else "Unknown",
-            "status": "playing" if is_active else "folded",  # Konwersja bool na string
+            "position": "Unknown",  # ZMIANA: Usunięto 'dealer_index'
+            "status": "playing" if is_active else "folded",
             "currentBet": state.bets[i]
         })
 
@@ -175,12 +176,12 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
         "hole_cards": hole_cards,
         "board": board_cards,
         "legal_moves": legal_moves,
-        "pot": state.total_pot_amount,  # Używamy total_pot_amount, które zawiera bety
+        "pot": state.total_pot_amount,
         "opponents": opponents,
         "your_stack": state.stacks[player_index],
-        "bet_to_call": state.bet_to_call,
-        "min_raise": state.min_bet_or_raise_to,
-        "max_raise": state.max_bet_or_raise_to,
+        "bet_to_call": state.checking_or_calling_amount,  # ZMIANA
+        "min_raise": state.min_completion_betting_or_raising_to_amount,
+        "max_raise": state.max_completion_betting_or_raising_to_amount,
         "game_story": game_story
     }
 
@@ -204,7 +205,7 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
         cards_to_show = hole_cards if hole_cards else [None, None]
 
         is_active = state.statuses[i]
-        if not is_active:  # Jeśli gracz nie jest aktywny (False), ukryj karty
+        if not is_active:
             cards_to_show = [None, None]
 
         players.append({
@@ -212,18 +213,19 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
             "chipCount": state.stacks[i],
             "currentBet": state.bets[i],
             "holeCards": cards_to_show,
-            "status": "playing" if is_active else "folded"  # Konwersja bool na string
+            "status": "playing" if is_active else "folded"
         })
 
-    active_player_id = None
-    if not state.is_hand_over() and state.actor_index is not None:
-        active_player_id = player_map[state.actor_index]['name']
+    active_player = None
+    # ZMIANA: Używamy 'state.status'
+    if state.status and state.actor_index is not None:
+        active_player = player_map[state.actor_index]['name']
 
     state_json = {
-        "pot": state.total_pot_amount,  # Używamy total_pot_amount, które zawiera bety
+        "pot": state.total_pot_amount,
         "communityCards": community_cards,
         "players": players,
-        "activePlayerId": active_player_id,
+        "activePlayer": active_player,
         "chatLog": chat_log,
         "lastEvent": last_event
     }
@@ -254,7 +256,8 @@ def validate_and_execute_action(state: State, llm_response: dict | None) -> tupl
 
         elif action_str == "check" or action_str == "call":
             if state.can_check_or_call:
-                bet_called = state.bet_to_call
+                # ZMIANA: Używamy 'checking_or_calling_amount'
+                bet_called = state.checking_or_calling_amount
                 state.check_or_call()
                 return "call" if bet_called > 0 else "check", bet_called, message
             else:
@@ -262,20 +265,23 @@ def validate_and_execute_action(state: State, llm_response: dict | None) -> tupl
 
         elif action_str == "bet" or action_str == "raise":
             if state.can_complete_bet_or_raise_to:
+                min_bet = state.min_completion_betting_or_raising_to_amount
+                max_bet = state.max_completion_betting_or_raising_to_amount
+
                 if not isinstance(amount, (int, float)):
                     print(f"[Poker Engine] Error: LLM bet/raise without amount. Using min-raise.")
-                    amount = state.min_bet_or_raise_to
+                    amount = min_bet
 
-                min_bet = state.min_bet_or_raise_to
-                max_bet = state.max_bet_or_raise_to
-
+                # 'amount' od LLM to kwota, do której podbija (total)
                 clamped_amount = max(min_bet, min(amount, max_bet))
 
                 if clamped_amount != amount:
                     print(f"[Poker Engine] LLM amount ({amount}) out of range. Clamping to: {clamped_amount}")
 
                 state.complete_bet_or_raise_to(clamped_amount)
-                return "raise" if state.bet_to_call > 0 else "bet", clamped_amount, message
+                # ZMIANA: Używamy 'checking_or_calling_amount' do sprawdzenia, czy to raise
+                is_raise = state.checking_or_calling_amount > 0
+                return "raise" if is_raise else "bet", clamped_amount, message
             else:
                 raise Exception("Cannot bet or raise")
 
@@ -291,13 +297,13 @@ def safe_default_action(state: State, message: str) -> tuple:
     """
     Performs the safest legal action (Check or, if not possible, Fold).
     """
-    if state.can_check_or_call and state.bet_to_call == 0:
+    # ZMIANA: Używamy 'checking_or_calling_amount'
+    if state.can_check_or_call and state.checking_or_calling_amount == 0:
         state.check_or_call()
         return "check", 0, message
     elif state.can_fold:
         state.fold()
         return "fold", 0, message
     else:
-        # This should not be reachable if logic is correct
         print("[Poker Engine] CRITICAL: No safe action found! Player is all-in or similar.")
         return "error", 0, "No safe action"

@@ -5,9 +5,8 @@ main_bp = Blueprint('main', __name__)
 
 try:
     from app.poker import poker_engine
-except ImportError as e: # Dobrą praktyką jest złapanie wyjątku jako 'e'
+except ImportError as e:
     print("="*50)
-    # Teraz możemy nawet wydrukować prawdziwy błąd, jeśli nadal występuje
     print(f"WARNING: Could not import 'app.poker.poker_engine'. Error: {e}")
     print("Server will run, but starting a game will fail.")
     print("="*50)
