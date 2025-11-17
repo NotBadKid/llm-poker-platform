@@ -144,7 +144,6 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
     if state.can_fold:
         legal_moves.append("fold")
     if state.can_check_or_call:
-        # ZMIANA: Używamy 'checking_or_calling_amount'
         if state.checking_or_calling_amount == 0:
             legal_moves.append("check")
         else:
@@ -217,7 +216,6 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
         })
 
     active_player = None
-    # ZMIANA: Używamy 'state.status'
     if state.status and state.actor_index is not None:
         active_player = player_map[state.actor_index]['name']
 
@@ -256,7 +254,6 @@ def validate_and_execute_action(state: State, llm_response: dict | None) -> tupl
 
         elif action_str == "check" or action_str == "call":
             if state.can_check_or_call:
-                # ZMIANA: Używamy 'checking_or_calling_amount'
                 bet_called = state.checking_or_calling_amount
                 state.check_or_call()
                 return "call" if bet_called > 0 else "check", bet_called, message
@@ -272,14 +269,12 @@ def validate_and_execute_action(state: State, llm_response: dict | None) -> tupl
                     print(f"[Poker Engine] Error: LLM bet/raise without amount. Using min-raise.")
                     amount = min_bet
 
-                # 'amount' od LLM to kwota, do której podbija (total)
                 clamped_amount = max(min_bet, min(amount, max_bet))
 
                 if clamped_amount != amount:
                     print(f"[Poker Engine] LLM amount ({amount}) out of range. Clamping to: {clamped_amount}")
 
                 state.complete_bet_or_raise_to(clamped_amount)
-                # ZMIANA: Używamy 'checking_or_calling_amount' do sprawdzenia, czy to raise
                 is_raise = state.checking_or_calling_amount > 0
                 return "raise" if is_raise else "bet", clamped_amount, message
             else:
@@ -297,7 +292,6 @@ def safe_default_action(state: State, message: str) -> tuple:
     """
     Performs the safest legal action (Check or, if not possible, Fold).
     """
-    # ZMIANA: Używamy 'checking_or_calling_amount'
     if state.can_check_or_call and state.checking_or_calling_amount == 0:
         state.check_or_call()
         return "check", 0, message
