@@ -26,6 +26,19 @@ def start_game_session(game_config: dict):
     blinds = (game_config.get('small_blind', 10), game_config.get('big_blind', 20))
     big_blind = blinds[1]
 
+    automations_tuple = (
+        Automation.ANTE_POSTING,
+        Automation.BET_COLLECTION,
+        Automation.BLIND_OR_STRADDLE_POSTING,
+        Automation.CARD_BURNING,
+        Automation.HOLE_DEALING,
+        Automation.BOARD_DEALING,
+        Automation.HOLE_CARDS_SHOWING_OR_MUCKING,
+        Automation.HAND_KILLING,
+        Automation.CHIPS_PUSHING,
+        Automation.CHIPS_PULLING,
+    )
+
     # --- Hand Limit Settings ---
     max_hands_to_play = game_config.get('number_of_hands')
     hands_played = 0
@@ -53,7 +66,7 @@ def start_game_session(game_config: dict):
         print(f"\n[Poker Engine] New hand started (#{hands_played}).")
 
         state = NoLimitTexasHoldem.create_state(
-            (Automation.STANDARD,),  # Use standard automations
+            automations_tuple,  # Use standard automations
             False,  # uniform_antes
             {},  # antes
             blinds,  # blinds_or_straddles
@@ -65,7 +78,7 @@ def start_game_session(game_config: dict):
 
         # --- 3. Hand Loop (betting round after betting round) ---
         while state.status:
-            state.collect_bets()
+            #state.collect_bets()
 
             if not state.status:
                 break
@@ -199,13 +212,13 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
     """
     board_cards = []
     if state.board_cards:
-        board_cards = [card_to_str(c) for c in state.board_cards[0]]
+        board_cards = [card_to_str(c)[-3:-1] for c in state.board_cards[0]]
     community_cards = board_cards + [None] * (5 - len(board_cards))
 
     players = []
     for i in range(player_count):
         player_data = player_map[i]
-        hole_cards = [card_to_str(c) for c in state.hole_cards[i]]
+        hole_cards = [card_to_str(c)[-3:-1] for c in state.hole_cards[i]]
         cards_to_show = hole_cards if hole_cards else [None, None]
 
         is_active = state.statuses[i]

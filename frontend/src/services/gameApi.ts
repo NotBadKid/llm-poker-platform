@@ -4,7 +4,7 @@ export const startGame = async () => {
     const body = {
         players: [
             { name: "KAWIPILOT", model_id: "kwaipilot/kat-coder-pro:free" },
-            { name: "NEMOTRONNANO", model_id: "nvidia/nemotron-nano-12b-v2-vl:free" },
+            { name: "NEMOTRONNANO ale to kot", model_id: "meituan/longcat-flash-chat:free" },
             { name: "ALIBABA KRUL KEBABA", model_id: "alibaba/tongyi-deepresearch-30b-a3b:free" },
             { name: "DLUGI KOT", model_id: "meituan/longcat-flash-chat:free" },
         ],

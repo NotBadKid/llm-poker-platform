@@ -14,4 +14,4 @@ def broadcast_game_state(state_json: dict):
     print(f"[Broadcaster] Broadcastig the event: '{event_name}'...")
 
     # socketio.emit() z broadcast=True wysyła wiadomość do wszystkich podłączonych klientów w domyślnej przestrzeni nazw.
-    socketio.emit(event_name, state_json, broadcast=True)
+    socketio.emit(event_name, state_json)
