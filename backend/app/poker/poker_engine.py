@@ -103,7 +103,12 @@ def start_game_session(game_config: dict):
             }
             game_story.append(last_event)
             if message:
-                chat_log.append({"player": player_data['name'], "message": message})
+                chat_log.append({
+                    "player": player_data['name'],
+                    "action": action_str,
+                    "amount": amount_validated,
+                    "message": message
+                })
 
             # --- 8. Generate JSON for Frontend ---
             frontend_state = build_frontend_state(state, player_map, chat_log, last_event, player_count)
