@@ -156,7 +156,7 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
     hole_cards = [card_to_str(c) for c in state.hole_cards[player_index]]
     board_cards = []
     if state.board_cards:
-        board_cards = [card_to_str(c) for c in state.board_cards[0]]
+        board_cards = [card_to_str(c) for c in state.board_cards]
 
     legal_moves = []
     if state.can_fold:
@@ -212,7 +212,7 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
     """
     board_cards = []
     if state.board_cards:
-        board_cards = [card_to_str(c)[-3:-1] for c in state.board_cards[0]]
+        board_cards = [card_to_str(c)[-3:-1] for c in state.board_cards]
     community_cards = board_cards + [None] * (5 - len(board_cards))
 
     players = []
