@@ -32,22 +32,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
       - name: Install dependencies
+        working-directory: ./frontend
         run: npm ci
+
       - name: Build
+        working-directory: ./frontend
         run: npm run build
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          # Upload dist folder
-          path: './dist'
+          path: './frontend/dist'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
