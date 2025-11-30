@@ -2,8 +2,9 @@ import requests
 import json
 import config
 
-
-def get_llm_action(model_id: str, prompt_json: dict) -> dict | None:
+schema_prompt="You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. Do not include any other text, reasoning, or explanations outside of the JSON object. The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}.In your game please follow that strategy:"
+default_prompt = "play optimally , based on your hand , position and pot odds, play GTO"
+def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_prompt) -> dict | None:
     """
     Sends prompt to specified by openRouter LLM model and returns parsed JSON response
 
@@ -31,7 +32,7 @@ def get_llm_action(model_id: str, prompt_json: dict) -> dict | None:
         "messages": [
             {
                 "role": "system",
-                "content": "You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. Do not include any other text, reasoning, or explanations outside of the JSON object. The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}."
+                "content": schema_prompt+user_prompt
             },
             {
                 "role": "user",
