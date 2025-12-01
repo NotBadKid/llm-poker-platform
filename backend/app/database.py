@@ -1,11 +1,12 @@
 import sqlite3
-import json
+import pandas as pd
 from datetime import datetime
 
 DB_NAME = "poker_stats.db"
 
 
 def init_db():
+    """Init if not exists and creates the hand_results table."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -104,48 +105,61 @@ def init_db():
     conn.close()
 
 
+def save_hand_result(game_id, hand_num, player_stats):
+    """
+    Saves hand results.
+    player_stats is a dict list like:
+    [{'name': 'GPT-5', 'model': '...', 'temp': 0.7, 'before': 1000, 'after': 1200}, ...]
+    """
 
 def create_new_game(game_id, config, players):
     """Create a new game entry."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    cursor.execute('''
-                   INSERT INTO games (game_id, start_time, config, players)
-                   VALUES (?, ?, ?, ?)
-                   ''', (
-                       game_id,
-                       datetime.now(),
-                       json.dumps(config),
-                       json.dumps(players)
-                   ))
+    timestamp = datetime.now()
+
+    for p in player_stats:
+        net_change = p['after'] - p['before']
+        is_winner = net_change > 0
+
+        cursor.execute('''
+                       INSERT INTO hand_results
+                       (timestamp, game_id, hand_number, player_name, model_id, temperature,
+                        chips_before, chips_after, net_change, is_winner)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       ''', (
+                           timestamp, game_id, hand_num, p['name'], p['model'], p.get('temp', 1.0),
+                           p['before'], p['after'], net_change, is_winner
+                       ))
 
     conn.commit()
     conn.close()
 
 
-def log_game_event(game_id, hand_num, player_name, model_id, hole_cards, action, amount, message, prompt_json):
-    """Saves single player action."""
+def get_aggregated_stats():
+    """Returns stats grouped by model and temperature."""
     conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
 
-    cursor.execute('''
-                   INSERT INTO game_logs
-                   (game_id, hand_number, player_name, model_id, hole_cards, action, amount, message, prompt_sent,
-                    timestamp)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                   ''', (
-                       game_id,
-                       hand_num,
-                       player_name,
-                       model_id,
-                       json.dumps(hole_cards),
-                       action,
-                       amount,
-                       message,
-                       json.dumps(prompt_json),
-                       datetime.now()
-                   ))
+    try:
+        df = pd.read_sql_query("SELECT * FROM hand_results", conn)
+        if df.empty:
+            return {}
 
-    conn.commit()
-    conn.close()
+        # Group by model
+        model_stats = df.groupby('model_id').agg({
+            'hand_number': 'count',
+            'net_change': 'sum',
+            'is_winner': 'sum'
+        }).rename(columns={'hand_number': 'hands_played', 'net_change': 'total_profit', 'is_winner': 'hands_won'})
+
+        model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
+        model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
+
+        return model_stats.to_dict('index')
+
+    except Exception as e:
+        print(f"Data analysis error: {e}")
+        return {}
+    finally:
+        conn.close()

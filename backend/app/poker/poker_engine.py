@@ -19,7 +19,6 @@ def start_game_session(game_config: dict):
     Main function called by /game/start in a separate thread.
     Runs and manages the full poker game session.
     """
-
     print(f"[Poker Engine] Initializing statistics database...")
     db.init_db()
 
@@ -66,6 +65,9 @@ def start_game_session(game_config: dict):
             print("[Poker Engine] Game over: Only one player has chips remaining.")
             break
 
+        #Store stacks before hand for stats
+        stacks_before_hand = list(current_stacks)
+
         hands_played += 1
         game_story = []
         chat_log = []
@@ -100,12 +102,15 @@ def start_game_session(game_config: dict):
 
             # --- 4. Generate JSON for LLM ---
             prompt_json = build_llm_prompt(state, player_index, player_map, game_story)
-            user_strategy =player_data.get('user_prompt')
+            user_strategy = player_data.get('user_prompt')
+            user_temperature = player_data.get('temperature', 1.0)
+
             # --- 5. Call LLM Manager ---
             action_response = llm_manager.get_llm_action(
                 model_id=player_data['model_id'],
                 prompt_json=prompt_json,
-                user_prompt=user_strategy
+                user_prompt=user_strategy,
+                temperature=user_temperature
             )
 
             # --- 6. Validate and Execute Action ---
@@ -143,7 +148,27 @@ def start_game_session(game_config: dict):
         # --- 10. End of Hand ---
         print("[Poker Engine] Hand finished. Settling pot.")
 
+        #Update current stacks after hand
         current_stacks = tuple(state.stacks)
+
+        # --- 11. Save Statistics ---
+        try:
+            stats_data = []
+            for i in range(player_count):
+                p_data = player_map[i]
+                stats_data.append({
+                    'name': p_data['name'],
+                    'model': p_data['model_id'],
+                    'temp': p_data.get('temperature', 1.0),
+                    'before': stacks_before_hand[i],  # Amount before hand
+                    'after': current_stacks[i]  # Amount after hand
+                })
+
+            # Zapis do SQLite
+            db.save_hand_result(game_id, hands_played, stats_data)
+            print(f"[Poker Engine] Stats saved for hand {hands_played}")
+        except Exception as e:
+            print(f"[Poker Engine] Error saving stats: {e}")
 
         final_state = build_frontend_state(state, player_map, chat_log, last_event, player_count, hand_over=True)
         broadcaster.broadcast_game_state(final_state)
@@ -221,13 +246,16 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
     """
     board_cards = []
     if state.board_cards:
-        board_cards = [card_to_str(c)[-3:-1] for c in state.board_cards]
+        board_cards = [card_to_str(c)[-3:-1] if card_to_str(c) else None for c in state.board_cards]
     community_cards = board_cards + [None] * (5 - len(board_cards))
 
     players = []
     for i in range(player_count):
         player_data = player_map[i]
-        hole_cards = [card_to_str(c)[-3:-1] for c in state.hole_cards[i]]
+
+        c_str = [card_to_str(c) for c in state.hole_cards[i]]
+        hole_cards = [s[-3:-1] if s else None for s in c_str]
+
         cards_to_show = hole_cards if hole_cards else [None, None]
 
         is_active = state.statuses[i]
