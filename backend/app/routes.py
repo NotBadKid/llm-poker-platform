@@ -1,5 +1,6 @@
 from flask import request, jsonify, Blueprint
 import threading
+import app.database as db
 
 main_bp = Blueprint('main', __name__)
 
@@ -15,6 +16,7 @@ except ImportError as e:
 
 @main_bp.route('/game/start', methods=['POST'])
 def start_game():
+
     """
     HTTP POST Endpoint for starting the game.
     Gets the configuration and starts the game in a seperate thread.
@@ -39,6 +41,13 @@ def start_game():
 
     return jsonify({"status": "Game session started"}), 202
 
+@main_bp.route('/stats', methods=['GET'])
+def get_stats():
+    """
+    HTTP GET Endpoint for retrieving aggregated game statistics.
+    """
+    stats = db.get_aggregated_stats()
+    return jsonify(stats), 200
 
 def log_player_strategies(players_list: list):
     """
