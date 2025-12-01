@@ -6,11 +6,10 @@ DB_NAME = "poker_stats.db"
 
 
 def init_db():
-    """Inicjalizuje tabelę statystyk, jeśli nie istnieje."""
+    """Init if not exists and creates the hand_results table."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # Tabela przechowująca wynik każdego gracza w każdym rozdaniu
     cursor.execute('''
                    CREATE TABLE IF NOT EXISTS hand_results
                    (
@@ -47,8 +46,8 @@ def init_db():
 
 def save_hand_result(game_id, hand_num, player_stats):
     """
-    Zapisuje listę wyników dla jednego rozdania.
-    player_stats to lista słowników:
+    Saves hand results.
+    player_stats is a dict list like:
     [{'name': 'GPT-5', 'model': '...', 'temp': 0.7, 'before': 1000, 'after': 1200}, ...]
     """
     conn = sqlite3.connect(DB_NAME)
@@ -75,30 +74,28 @@ def save_hand_result(game_id, hand_num, player_stats):
 
 
 def get_aggregated_stats():
-    """Zwraca statystyki zgrupowane po modelu i temperaturze."""
+    """Returns stats grouped by model and temperature."""
     conn = sqlite3.connect(DB_NAME)
 
-    # Używamy pandas dla łatwiejszej agregacji (SQL też by dał radę, ale Pandas jest wygodniejszy)
     try:
         df = pd.read_sql_query("SELECT * FROM hand_results", conn)
         if df.empty:
             return {}
 
-        # Grupowanie po Modelu
+        # Group by model
         model_stats = df.groupby('model_id').agg({
-            'hand_number': 'count',  # Liczba rozegranych rozdań
-            'net_change': 'sum',  # Całkowity zysk/strata żetonów
-            'is_winner': 'sum'  # Ile razy wygrali rozdanie
+            'hand_number': 'count',
+            'net_change': 'sum',
+            'is_winner': 'sum'
         }).rename(columns={'hand_number': 'hands_played', 'net_change': 'total_profit', 'is_winner': 'hands_won'})
 
-        # Obliczanie win-rate i średniego zysku na rękę
         model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
         model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
 
         return model_stats.to_dict('index')
 
     except Exception as e:
-        print(f"Błąd analizy danych: {e}")
+        print(f"Data analysis error: {e}")
         return {}
     finally:
         conn.close()
