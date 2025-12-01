@@ -1,4 +1,5 @@
 import sqlite3
+import json
 import pandas as pd
 from datetime import datetime
 
@@ -6,10 +7,13 @@ DB_NAME = "poker_stats.db"
 
 
 def init_db():
-    """Init if not exists and creates the hand_results table."""
+    """
+    Creates tabel if not exist.
+    """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
+    # 1. Tabela gier (Sesje) - Przechowuje ogólne informacje o uruchomionej grze
     cursor.execute('''
                    CREATE TABLE IF NOT EXISTS games
                    (
@@ -19,14 +23,10 @@ def init_db():
                        KEY,
                        start_time
                        DATETIME,
-                       end_time
-                       DATETIME,
                        config
                        JSON,
                        players
-                       JSON,
-                       winner
-                       TEXT
+                       JSON
                    )
                    ''')
 
@@ -42,21 +42,20 @@ def init_db():
                        TEXT,
                        hand_number
                        INTEGER,
-                       round_stage
                        player_name
                        TEXT,
                        model_id
                        TEXT,
                        hole_cards
-                       TEXT, -- e.g. "['As', 'Kh']"
+                       TEXT, -- Karty gracza w momencie decyzji (np. "['As', 'Kh']")
                        action
-                       TEXT, -- "bet", "fold"
+                       TEXT, -- np. "bet", "fold"
                        amount
                        INTEGER,
                        message
-                       TEXT, -- model comment
+                       TEXT, -- komentarz (reasoning) modelu
                        prompt_sent
-                       TEXT, -- full JSON prompt sent to LLM
+                       TEXT, -- pełny prompt JSON wysłany do modelu (dla debugowania)
                        timestamp
                        DATETIME,
                        FOREIGN
@@ -97,9 +96,68 @@ def init_db():
                        net_change
                        INTEGER,
                        is_winner
-                       BOOLEAN
+                       BOOLEAN,
+                       FOREIGN
+                       KEY
+                   (
+                       game_id
+                   ) REFERENCES games
+                   (
+                       game_id
                    )
+                       )
                    ''')
+
+    conn.commit()
+    conn.close()
+
+
+
+def create_new_game(game_id, config, players):
+    """
+    Saves new game data.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+                   INSERT INTO games (game_id, start_time, config, players)
+                   VALUES (?, ?, ?, ?)
+                   ''', (
+                       game_id,
+                       datetime.now(),
+                       json.dumps(config),
+                       json.dumps(players)
+                   ))
+
+    conn.commit()
+    conn.close()
+
+
+def log_game_event(game_id, hand_num, player_name, model_id, hole_cards, action, amount, message, prompt_json):
+    """
+    Saves single player action log.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+                   INSERT INTO game_logs
+                   (game_id, hand_number, player_name, model_id, hole_cards, action, amount, message, prompt_sent,
+                    timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ''', (
+                       game_id,
+                       hand_num,
+                       player_name,
+                       model_id,
+                       json.dumps(hole_cards),  # Serializacja listy kart do stringa
+                       action,
+                       amount,
+                       message,
+                       json.dumps(prompt_json),  # Serializacja promptu
+                       datetime.now()
+                   ))
 
     conn.commit()
     conn.close()
@@ -107,13 +165,10 @@ def init_db():
 
 def save_hand_result(game_id, hand_num, player_stats):
     """
-    Saves hand results.
-    player_stats is a dict list like:
-    [{'name': 'GPT-5', 'model': '...', 'temp': 0.7, 'before': 1000, 'after': 1200}, ...]
+    Saves data about players after hand.
+    player_stats is a list of dicts:
+    [{'name': '...', 'model': '...', 'temp': 1.0, 'before': 1000, 'after': 1200}, ...]
     """
-
-def create_new_game(game_id, config, players):
-    """Create a new game entry."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -137,29 +192,41 @@ def create_new_game(game_id, config, players):
     conn.close()
 
 
+# --- Funkcje Odczytu (Statystyki) ---
+
 def get_aggregated_stats():
-    """Returns stats grouped by model and temperature."""
+    """
+    Gets model stats from the start (whole history).
+    """
     conn = sqlite3.connect(DB_NAME)
 
     try:
         df = pd.read_sql_query("SELECT * FROM hand_results", conn)
+
         if df.empty:
             return {}
 
-        # Group by model
+        # Group by model (can be changed to ['model_id', 'temperature'] for more detailed analysis)
         model_stats = df.groupby('model_id').agg({
             'hand_number': 'count',
             'net_change': 'sum',
             'is_winner': 'sum'
-        }).rename(columns={'hand_number': 'hands_played', 'net_change': 'total_profit', 'is_winner': 'hands_won'})
+        }).rename(columns={
+            'hand_number': 'hands_played',
+            'net_change': 'total_profit',
+            'is_winner': 'hands_won'
+        })
 
+        # Win Rate: % of all won hands
         model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
+
+        # Avg Profit (for single hand)
         model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
 
         return model_stats.to_dict('index')
 
     except Exception as e:
-        print(f"Data analysis error: {e}")
+        print(f"Data analysis error in get_aggregated_stats: {e}")
         return {}
     finally:
         conn.close()
