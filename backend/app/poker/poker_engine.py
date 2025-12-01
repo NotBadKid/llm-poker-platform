@@ -1,12 +1,13 @@
 import time
 from math import inf
+import json  # Added for logging serialization
+import uuid  # Added for Game ID generation
 from pokerkit import Automation, Mode, NoLimitTexasHoldem
 from pokerkit.state import State
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 import app.dummy_actions as dummy_actions
-import uuid
-import app.database as db
+import app.database as db  # Added database module
 
 
 def card_to_str(card):
@@ -20,10 +21,22 @@ def start_game_session(game_config: dict):
     Runs and manages the full poker game session.
     """
     print(f"[Poker Engine] Initializing statistics database...")
+    # [DB] Initialize database
     db.init_db()
 
+    # [DB] Generate unique Game ID
     game_id = str(uuid.uuid4())
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
+
+    # [DB] Save game session info
+    try:
+        players_info = [
+            {'name': p['name'], 'model': p['model_id'], 'temp': p.get('temperature', 1.0)}
+            for p in game_config['players']
+        ]
+        db.create_new_game(game_id, game_config, players_info)
+    except Exception as e:
+        print(f"[Poker Engine] Error saving game info: {e}")
 
     # --- 1. Game Setup ---
     player_map = {i: player for i, player in enumerate(game_config['players'])}
@@ -65,7 +78,7 @@ def start_game_session(game_config: dict):
             print("[Poker Engine] Game over: Only one player has chips remaining.")
             break
 
-        #Store stacks before hand for stats
+        # [DB] Store stacks before hand for stats calculation
         stacks_before_hand = list(current_stacks)
 
         hands_played += 1
@@ -88,7 +101,7 @@ def start_game_session(game_config: dict):
 
         # --- 3. Hand Loop (betting round after betting round) ---
         while state.status:
-            #state.collect_bets()
+            # state.collect_bets()
 
             if not state.status:
                 break
@@ -119,6 +132,24 @@ def start_game_session(game_config: dict):
                 action_response
             )
 
+            # [DB] Log detailed event (Action Log)
+            try:
+                # We need to serialize cards to string for the DB
+                current_hole_cards = [card_to_str(c) for c in state.hole_cards[player_index]]
+                db.log_game_event(
+                    game_id=game_id,
+                    hand_num=hands_played,
+                    player_name=player_data['name'],
+                    model_id=player_data['model_id'],
+                    hole_cards=current_hole_cards,
+                    action=action_str,
+                    amount=amount_validated,
+                    message=message,
+                    prompt_json=prompt_json
+                )
+            except Exception as e:
+                print(f"[Poker Engine] Error logging event: {e}")
+
             print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
 
             # --- 7. Update History and Logs ---
@@ -148,10 +179,10 @@ def start_game_session(game_config: dict):
         # --- 10. End of Hand ---
         print("[Poker Engine] Hand finished. Settling pot.")
 
-        #Update current stacks after hand
+        # Update current stacks after hand
         current_stacks = tuple(state.stacks)
 
-        # --- 11. Save Statistics ---
+        # [DB] Save Hand Statistics
         try:
             stats_data = []
             for i in range(player_count):
@@ -164,7 +195,6 @@ def start_game_session(game_config: dict):
                     'after': current_stacks[i]  # Amount after hand
                 })
 
-            # Zapis do SQLite
             db.save_hand_result(game_id, hands_played, stats_data)
             print(f"[Poker Engine] Stats saved for hand {hands_played}")
         except Exception as e:
@@ -196,12 +226,12 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
     if state.can_fold:
         legal_moves.append("fold")
     if state.can_check_or_call:
-        if state.checking_or_calling_amount == 0:
+        if state.bet_to_call == 0:
             legal_moves.append("check")
         else:
             legal_moves.append("call")
     if state.can_complete_bet_or_raise_to:
-        if state.checking_or_calling_amount == 0:
+        if state.bet_to_call == 0:
             legal_moves.append("bet")
         else:
             legal_moves.append("raise")
@@ -216,7 +246,7 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
         opponents.append({
             "name": opponent_data['name'],
             "stack": state.stacks[i],
-            "position": "Unknown",  # ZMIANA: Usunięto 'dealer_index'
+            "position": "Unknown",
             "status": "playing" if is_active else "folded",
             "currentBet": state.bets[i]
         })
@@ -230,7 +260,7 @@ def build_llm_prompt(state: State, player_index: int, player_map: dict, game_sto
         "pot": state.total_pot_amount,
         "opponents": opponents,
         "your_stack": state.stacks[player_index],
-        "bet_to_call": state.checking_or_calling_amount,  # ZMIANA
+        "bet_to_call": state.bet_to_call,  # Reverted to your logic
         "min_raise": state.min_completion_betting_or_raising_to_amount,
         "max_raise": state.max_completion_betting_or_raising_to_amount,
         "game_story": game_story
@@ -247,6 +277,7 @@ def build_frontend_state(state: State, player_map: dict, chat_log: list, last_ev
     board_cards = []
     if state.board_cards:
         board_cards = [card_to_str(c)[-3:-1] if card_to_str(c) else None for c in state.board_cards]
+
     community_cards = board_cards + [None] * (5 - len(board_cards))
 
     players = []
@@ -309,7 +340,7 @@ def validate_and_execute_action(state: State, llm_response: dict | None) -> tupl
 
         elif action_str == "check" or action_str == "call":
             if state.can_check_or_call:
-                bet_called = state.checking_or_calling_amount
+                bet_called = state.bet_to_call
                 state.check_or_call()
                 return "call" if bet_called > 0 else "check", bet_called, message
             else:
@@ -330,7 +361,8 @@ def validate_and_execute_action(state: State, llm_response: dict | None) -> tupl
                     print(f"[Poker Engine] LLM amount ({amount}) out of range. Clamping to: {clamped_amount}")
 
                 state.complete_bet_or_raise_to(clamped_amount)
-                is_raise = state.checking_or_calling_amount > 0
+
+                is_raise = state.bet_to_call > 0
                 return "raise" if is_raise else "bet", clamped_amount, message
             else:
                 raise Exception("Cannot bet or raise")
@@ -347,7 +379,7 @@ def safe_default_action(state: State, message: str) -> tuple:
     """
     Performs the safest legal action (Check or, if not possible, Fold).
     """
-    if state.can_check_or_call and state.checking_or_calling_amount == 0:
+    if state.can_check_or_call and state.bet_to_call == 0:
         state.check_or_call()
         return "check", 0, message
     elif state.can_fold:
