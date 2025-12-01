@@ -5,6 +5,8 @@ from pokerkit.state import State
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 import app.dummy_actions as dummy_actions
+import uuid
+import app.database as db
 
 
 def card_to_str(card):
@@ -17,7 +19,12 @@ def start_game_session(game_config: dict):
     Main function called by /game/start in a separate thread.
     Runs and manages the full poker game session.
     """
-    print(f"[Poker Engine] Starting game with config: {game_config}")
+
+    print(f"[Poker Engine] Initializing statistics database...")
+    db.init_db()
+
+    game_id = str(uuid.uuid4())
+    print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
 
     # --- 1. Game Setup ---
     player_map = {i: player for i, player in enumerate(game_config['players'])}
