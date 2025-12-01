@@ -3,15 +3,15 @@ const API_URL = 'http://localhost:5000';
 export const startGame = async () => {
     const body = {
         players: [
-            { name: "KAWIPILOT", model_id: "kwaipilot/kat-coder-pro:free" },
-            { name: "NEMOTRONNANO ale to kot", model_id: "meituan/longcat-flash-chat:free" },
-            { name: "ALIBABA KRUL KEBABA", model_id: "alibaba/tongyi-deepresearch-30b-a3b:free" },
-            { name: "DLUGI KOT", model_id: "meituan/longcat-flash-chat:free" },
+            { name: "kat-coder-pro", model_id: "kwaipilot/kat-coder-pro:free" },
+            { name: "longcat-flash", model_id: "meituan/longcat-flash-chat:free" },
+            { name: "tongyi-deepresearch", model_id: "alibaba/tongyi-deepresearch-30b-a3b:free" },
+            { name: "longcat-flash 2", model_id: "meituan/longcat-flash-chat:free" },
         ],
         initial_stack: 10000,
-        small_blind: 10,
-        big_blind: 20,
-        number_of_hands: 5
+        small_blind: 100,
+        big_blind: 200,
+        number_of_hands: 7
     };
 
     try {
