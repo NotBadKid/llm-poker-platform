@@ -92,11 +92,12 @@ def start_game_session(game_config: dict):
 
             # --- 4. Generate JSON for LLM ---
             prompt_json = build_llm_prompt(state, player_index, player_map, game_story)
-
+            user_strategy =player_data.get('user_prompt')
             # --- 5. Call LLM Manager ---
             action_response = llm_manager.get_llm_action(
                 model_id=player_data['model_id'],
-                prompt_json=prompt_json
+                prompt_json=prompt_json,
+                user_prompt=user_strategy
             )
 
             # --- 6. Validate and Execute Action ---
