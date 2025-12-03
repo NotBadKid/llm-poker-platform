@@ -20,8 +20,8 @@ def start_game_session(game_config: dict):
     print(f"[Poker Engine] Starting game with config: {game_config}")
 
     # --- 1. Game Setup ---
-    player_map = {i: player for i, player in enumerate(game_config['players'])}
-    player_count = len(player_map)
+    player_pool = list(game_config['players'])
+    player_count = len(player_pool)
 
     current_stacks = tuple([game_config.get('initial_stack', 10000)] * player_count)
     blinds = (game_config.get('small_blind', 10), game_config.get('big_blind', 20))
@@ -50,12 +50,18 @@ def start_game_session(game_config: dict):
 
     # --- 2. Main Game Loop (hand after hand) ---
     while True:
+        # Filter out eliminated players (non-positive stacks) BEFORE starting a new hand
+        alive = [(p, s) for p, s in zip(player_pool, current_stacks) if s > 0]
+        player_pool = [p for p, s in alive]
+        current_stacks = tuple(s for p, s in alive)
+        player_count = len(player_pool)
+        player_map = {i: player_pool[i] for i in range(player_count)}
+
         if max_hands_to_play is not None and hands_played >= max_hands_to_play:
             print(f"[Poker Engine] Game over: Reached hand limit of {max_hands_to_play}.")
             break
 
-        players_with_chips = sum(1 for stack in current_stacks if stack > 0)
-        if players_with_chips <= 1:
+        if player_count <= 1:
             print("[Poker Engine] Game over: Only one player has chips remaining.")
             break
 
@@ -72,15 +78,13 @@ def start_game_session(game_config: dict):
             {},  # antes
             blinds,  # blinds_or_straddles
             big_blind,  # min_bet
-            current_stacks,  # Pass the *current* stacks
+            current_stacks,  # Pass the *current* stacks (all > 0 now)
             player_count,
             mode=Mode.CASH_GAME
         )
 
         # --- 3. Hand Loop (betting round after betting round) ---
         while state.status:
-            #state.collect_bets()
-
             if not state.status:
                 break
 
@@ -93,7 +97,7 @@ def start_game_session(game_config: dict):
 
             # --- 4. Generate JSON for LLM ---
             prompt_json = build_llm_prompt(state, player_index, player_map, game_story)
-            user_strategy =player_data.get('user_prompt')
+            user_strategy = player_data.get('user_prompt')
             # --- 5. Call LLM Manager ---
             action_response = llm_manager.get_llm_action(
                 model_id=player_data['model_id'],
@@ -136,6 +140,7 @@ def start_game_session(game_config: dict):
         # --- 10. End of Hand ---
         print("[Poker Engine] Hand finished. Settling pot.")
 
+        # Update current_stacks for remaining player_pool to reflect results of the hand
         current_stacks = tuple(state.stacks)
 
         final_state = build_frontend_state(state, player_map, chat_log, last_event, player_count, hand_over=True)
