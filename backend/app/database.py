@@ -1,4 +1,5 @@
 import sqlite3
+import json
 import pandas as pd
 from datetime import datetime
 
@@ -6,11 +7,67 @@ DB_NAME = "poker_stats.db"
 
 
 def init_db():
-    """Inicjalizuje tabelę statystyk, jeśli nie istnieje."""
+    """
+    Creates tabel if not exist.
+    """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # Tabela przechowująca wynik każdego gracza w każdym rozdaniu
+    cursor.execute('''
+                   CREATE TABLE IF NOT EXISTS games
+                   (
+                       game_id
+                       TEXT
+                       PRIMARY
+                       KEY,
+                       start_time
+                       DATETIME,
+                       config
+                       JSON,
+                       players
+                       JSON
+                   )
+                   ''')
+
+    cursor.execute('''
+                   CREATE TABLE IF NOT EXISTS game_logs
+                   (
+                       id
+                       INTEGER
+                       PRIMARY
+                       KEY
+                       AUTOINCREMENT,
+                       game_id
+                       TEXT,
+                       hand_number
+                       INTEGER,
+                       player_name
+                       TEXT,
+                       model_id
+                       TEXT,
+                       hole_cards
+                       TEXT, -- Karty gracza w momencie decyzji (np. "['As', 'Kh']")
+                       action
+                       TEXT, -- np. "bet", "fold"
+                       amount
+                       INTEGER,
+                       message
+                       TEXT, -- komentarz (reasoning) modelu
+                       prompt_sent
+                       TEXT, -- pełny prompt JSON wysłany do modelu (dla debugowania)
+                       timestamp
+                       DATETIME,
+                       FOREIGN
+                       KEY
+                   (
+                       game_id
+                   ) REFERENCES games
+                   (
+                       game_id
+                   )
+                       )
+                   ''')
+
     cursor.execute('''
                    CREATE TABLE IF NOT EXISTS hand_results
                    (
@@ -38,18 +95,78 @@ def init_db():
                        net_change
                        INTEGER,
                        is_winner
-                       BOOLEAN
+                       BOOLEAN,
+                       FOREIGN
+                       KEY
+                   (
+                       game_id
+                   ) REFERENCES games
+                   (
+                       game_id
                    )
+                       )
                    ''')
+
+    conn.commit()
+    conn.close()
+
+
+
+def create_new_game(game_id, config, players):
+    """
+    Saves new game data.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+                   INSERT INTO games (game_id, start_time, config, players)
+                   VALUES (?, ?, ?, ?)
+                   ''', (
+                       game_id,
+                       datetime.now(),
+                       json.dumps(config),
+                       json.dumps(players)
+                   ))
+
+    conn.commit()
+    conn.close()
+
+
+def log_game_event(game_id, hand_num, player_name, model_id, hole_cards, action, amount, message, prompt_json):
+    """
+    Saves single player action log.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+                   INSERT INTO game_logs
+                   (game_id, hand_number, player_name, model_id, hole_cards, action, amount, message, prompt_sent,
+                    timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ''', (
+                       game_id,
+                       hand_num,
+                       player_name,
+                       model_id,
+                       json.dumps(hole_cards),  # Serializacja listy kart do stringa
+                       action,
+                       amount,
+                       message,
+                       json.dumps(prompt_json),  # Serializacja promptu
+                       datetime.now()
+                   ))
+
     conn.commit()
     conn.close()
 
 
 def save_hand_result(game_id, hand_num, player_stats):
     """
-    Zapisuje listę wyników dla jednego rozdania.
-    player_stats to lista słowników:
-    [{'name': 'GPT-5', 'model': '...', 'temp': 0.7, 'before': 1000, 'after': 1200}, ...]
+    Saves data about players after hand.
+    player_stats is a list of dicts:
+    [{'name': '...', 'model': '...', 'temp': 1.0, 'before': 1000, 'after': 1200}, ...]
     """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -74,31 +191,43 @@ def save_hand_result(game_id, hand_num, player_stats):
     conn.close()
 
 
+
 def get_aggregated_stats():
-    """Zwraca statystyki zgrupowane po modelu i temperaturze."""
+    """
+    Gets model stats from the start (whole history) as a flat list.
+    """
     conn = sqlite3.connect(DB_NAME)
 
-    # Używamy pandas dla łatwiejszej agregacji (SQL też by dał radę, ale Pandas jest wygodniejszy)
     try:
         df = pd.read_sql_query("SELECT * FROM hand_results", conn)
+
         if df.empty:
-            return {}
+            return []
 
-        # Grupowanie po Modelu
+        # Group by model
         model_stats = df.groupby('model_id').agg({
-            'hand_number': 'count',  # Liczba rozegranych rozdań
-            'net_change': 'sum',  # Całkowity zysk/strata żetonów
-            'is_winner': 'sum'  # Ile razy wygrali rozdanie
-        }).rename(columns={'hand_number': 'hands_played', 'net_change': 'total_profit', 'is_winner': 'hands_won'})
+            'hand_number': 'count',
+            'net_change': 'sum',
+            'is_winner': 'sum'
+        }).rename(columns={
+            'hand_number': 'hands_played',
+            'net_change': 'total_profit',
+            'is_winner': 'hands_won'
+        })
 
-        # Obliczanie win-rate i średniego zysku na rękę
+        # Calculations
         model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
         model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
 
-        return model_stats.to_dict('index')
+
+        model_stats = model_stats.reset_index()
+
+        model_stats = model_stats.rename(columns={'model_id': 'name'})
+
+        return model_stats.to_dict('records')
 
     except Exception as e:
-        print(f"Błąd analizy danych: {e}")
-        return {}
+        print(f"Data analysis error in get_aggregated_stats: {e}")
+        return []
     finally:
         conn.close()

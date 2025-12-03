@@ -11,7 +11,7 @@ def broadcast_game_state(state_json: dict):
     # frontend should listen for this event name
     event_name = "game_update"
 
-    print(f"[Broadcaster] Broadcastig the event: '{event_name}'...")
+    print(f"[Broadcaster] Broadcasting the event: '{event_name}'...")
 
     # socketio.emit() z broadcast=True wysyła wiadomość do wszystkich podłączonych klientów w domyślnej przestrzeni nazw.
     socketio.emit(event_name, state_json)
