@@ -30,3 +30,23 @@ export interface GameState {
     chatLog: ChatMessage[],
     lastEvent: LastEvent | null,
 }
+
+export interface BotPlayerConfig {
+    name: string,
+    model_id: string,
+    user_prompt: string,
+    temperature: number,
+}
+
+export interface GameStartPayload {
+    players: BotPlayerConfig[];
+    initial_stack: number,
+    small_blind: number,
+    big_blind: number,
+    number_of_hands: number,
+}
+
+export interface BotPlayerConfigUI extends BotPlayerConfig {
+    id: number,
+    useCustomPrompt: boolean,
+}
