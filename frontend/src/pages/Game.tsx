@@ -25,7 +25,7 @@ const Game = () => {
 
 
     return (
-        <main className="text-4xl w-full h-screen overflow-hidden text-white">
+        <main className="text-4xl w-full h-screen overflow-hidden text-white pr-[300px]">
             <NavBar />
             <SideBar chatLogs={chatLog} />
 

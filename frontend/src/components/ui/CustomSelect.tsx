@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 
 interface CustomSelectProps<T extends number | string> {
-    value: T;
-    onChange: (value: T) => void;
-    options: { value: T; label: string }[];
+    value: T,
+    onChange: (value: T) => void,
+    options: { value: T; label: string }[],
+    className?: string,
 }
 
-const CustomSelect = <T extends number | string>({ value, onChange, options }: CustomSelectProps<T>) => {
+const CustomSelect = <T extends number | string>({ value, onChange, options, className }: CustomSelectProps<T>) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +30,7 @@ const CustomSelect = <T extends number | string>({ value, onChange, options }: C
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
                     w-full p-3 rounded-lg cursor-pointer flex justify-between items-center transition-all duration-200
-                    bg-slate-900 text-white border
+                    bg-slate-900 border ${className}
                     ${isOpen ? 'border-purple-500 ring-1 ring-purple-500' : 'border-slate-600 hover:border-purple-400'}
                 `}
             >
