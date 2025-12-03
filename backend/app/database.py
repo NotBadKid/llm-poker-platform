@@ -13,7 +13,6 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # 1. Tabela gier (Sesje) - Przechowuje ogólne informacje o uruchomionej grze
     cursor.execute('''
                    CREATE TABLE IF NOT EXISTS games
                    (
@@ -192,11 +191,10 @@ def save_hand_result(game_id, hand_num, player_stats):
     conn.close()
 
 
-# --- Funkcje Odczytu (Statystyki) ---
 
 def get_aggregated_stats():
     """
-    Gets model stats from the start (whole history).
+    Gets model stats from the start (whole history) as a flat list.
     """
     conn = sqlite3.connect(DB_NAME)
 
@@ -204,9 +202,9 @@ def get_aggregated_stats():
         df = pd.read_sql_query("SELECT * FROM hand_results", conn)
 
         if df.empty:
-            return {}
+            return []
 
-        # Group by model (can be changed to ['model_id', 'temperature'] for more detailed analysis)
+        # Group by model
         model_stats = df.groupby('model_id').agg({
             'hand_number': 'count',
             'net_change': 'sum',
@@ -217,16 +215,19 @@ def get_aggregated_stats():
             'is_winner': 'hands_won'
         })
 
-        # Win Rate: % of all won hands
+        # Calculations
         model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
-
-        # Avg Profit (for single hand)
         model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
 
-        return model_stats.to_dict('index')
+
+        model_stats = model_stats.reset_index()
+
+        model_stats = model_stats.rename(columns={'model_id': 'name'})
+
+        return model_stats.to_dict('records')
 
     except Exception as e:
         print(f"Data analysis error in get_aggregated_stats: {e}")
-        return {}
+        return []
     finally:
         conn.close()
