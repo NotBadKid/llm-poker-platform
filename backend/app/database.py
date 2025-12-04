@@ -10,12 +10,11 @@ from sqlalchemy.dialects.postgresql import JSON
 # 1. DATABASE CONFIGURATION
 # ----------------------------------------------------
 
-#urls goes here
-DB_USER = ""
-DB_PASSWORD = ""
-DB_HOST = ""
-DB_NAME = ""
-DB_PORT = ""
+DB_USER = "ad"
+DB_PASSWORD = "I0sqKMwKyb4Pstymmtpb24C2OvQV6jYW"
+DB_HOST = "dpg-d4o9oie3jp1c73dc18sg-a.frankfurt-postgres.render.com"
+DB_NAME = "pdb_1292"
+DB_PORT = "5432"
 
 # Full Connection URI
 DATABASE_URI = (
@@ -32,7 +31,6 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "super_tajny_klucz_lokalny")
 
 
-# We create a simple Flask app context to allow SQLAlchemy to function without a full web server setup
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
@@ -47,10 +45,10 @@ class Game(db.Model):
 
     game_id = db.Column(db.String(50), primary_key=True)
     start_time = db.Column(db.DateTime, default=datetime.utcnow)
-    config = db.Column(JSON)  # Using JSON type for PostgreSQL
-    players = db.Column(JSON)  # Using JSON type for PostgreSQL
+    config = db.Column(JSON)
+    players = db.Column(JSON)
 
-    # Relationships (Optional, for easier navigation)
+    # Relationships
     logs = db.relationship('GameLog', backref='game', lazy=True)
     results = db.relationship('HandResult', backref='game', lazy=True)
 
@@ -63,11 +61,11 @@ class GameLog(db.Model):
     hand_number = db.Column(db.Integer)
     player_name = db.Column(db.String(100))
     model_id = db.Column(db.String(100))
-    hole_cards = db.Column(JSON)  # Stored as JSON array
+    hole_cards = db.Column(JSON)
     action = db.Column(db.String(50))
     amount = db.Column(db.Integer)
     message = db.Column(db.Text)
-    prompt_sent = db.Column(JSON)  # Stored as JSON
+    prompt_sent = db.Column(JSON)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -114,8 +112,8 @@ def create_new_game(game_id, config, players):
         new_game = Game(
             game_id=game_id,
             start_time=datetime.utcnow(),
-            config=config,  # SQLAlchemy handles JSON serialization automatically
-            players=players  # SQLAlchemy handles JSON serialization automatically
+            config=config,
+            players=players
         )
 
         try:
@@ -137,11 +135,11 @@ def log_game_event(game_id, hand_num, player_name, model_id, hole_cards, action,
             hand_number=hand_num,
             player_name=player_name,
             model_id=model_id,
-            hole_cards=hole_cards,  # Pass list/dict directly, ORM handles JSON
+            hole_cards=hole_cards,
             action=action,
             amount=amount,
             message=message,
-            prompt_sent=prompt_json,  # Pass dict directly
+            prompt_sent=prompt_json,
             timestamp=datetime.utcnow()
         )
 
@@ -154,35 +152,42 @@ def log_game_event(game_id, hand_num, player_name, model_id, hole_cards, action,
             raise e
 
 
-def save_hand_result(data):
+def save_hand_result(game_id, hand_num, player_stats):
     """
-    Saves a single hand result.
-    Accepts the exact JSON structure provided by the user.
+    Saves results for all players after a hand.
+
+    Args:
+        game_id (str): UUID of the game.
+        hand_num (int): Current hand number.
+        player_stats (list): List of dicts, e.g.:
+            [{'name': '...', 'model': '...', 'temp': 1.0, 'before': 1000, 'after': 1200}, ...]
     """
     with app.app_context():
-        c_before = data['chips_before']
-        c_after = data['chips_after']
-
-        # Use provided net_change/is_winner OR calculate if missing
-        net_change = data.get('net_change', c_after - c_before)
-        is_winner = data.get('is_winner', net_change > 0)
-
-        result = HandResult(
-            timestamp=datetime.utcnow(),
-            game_id=data['game_id'],
-            hand_number=data['hand_number'],
-            player_name=data['player_name'],
-            model_id=data['model_id'],
-            temperature=data.get('temperature', 1.0),
-            chips_before=c_before,
-            chips_after=c_after,
-            net_change=net_change,
-            is_winner=is_winner
-        )
+        timestamp = datetime.utcnow()
 
         try:
-            db.session.add(result)
+            for p in player_stats:
+                # Calculate profit/loss
+                net_change = p['after'] - p['before']
+                is_winner = net_change > 0
+
+                result = HandResult(
+                    timestamp=timestamp,
+                    game_id=game_id,
+                    hand_number=hand_num,
+                    player_name=p['name'],
+                    model_id=p['model'],  # Mapping 'model' from dict to 'model_id' column
+                    temperature=p.get('temp', 1.0),
+                    chips_before=p['before'],
+                    chips_after=p['after'],
+                    net_change=net_change,
+                    is_winner=is_winner
+                )
+                db.session.add(result)
+
+            # Commit all results for this hand at once
             db.session.commit()
+
         except Exception as e:
             db.session.rollback()
             print(f"Error saving hand result: {e}")
@@ -218,10 +223,11 @@ def get_aggregated_stats():
             model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
             model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
 
-            # Formatting results
+            # Formatting results (Flattening structure)
             model_stats = model_stats.reset_index()
             model_stats = model_stats.rename(columns={'model_id': 'name'})
 
+            # Return list of dicts (flat JSON array)
             return model_stats.to_dict('records')
 
         except Exception as e:
