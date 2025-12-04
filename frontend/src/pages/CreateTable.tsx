@@ -29,7 +29,7 @@ const CreateTable = () => {
         {
             id: 2,
             name: "Bot 2",
-            model_id: AVAILABLE_MODELS[0].id,
+            model_id: AVAILABLE_MODELS[1].id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
@@ -37,7 +37,7 @@ const CreateTable = () => {
         {
             id: 3,
             name: "Bot 3",
-            model_id: AVAILABLE_MODELS[0].id,
+            model_id: AVAILABLE_MODELS[2].id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
@@ -45,7 +45,7 @@ const CreateTable = () => {
         {
             id: 4,
             name: "Bot 4",
-            model_id: AVAILABLE_MODELS[0].id,
+            model_id: AVAILABLE_MODELS[3].id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
@@ -61,7 +61,7 @@ const CreateTable = () => {
                         id: playerCount,
                         name: `Bot ${playerCount}`,
                         model_id: AVAILABLE_MODELS[0].id,
-                        temperature: 0.7,
+                        temperature: 1,
                         user_prompt: "",
                         useCustomPrompt: false,
                     }
