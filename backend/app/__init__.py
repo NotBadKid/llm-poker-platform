@@ -2,6 +2,7 @@ from flask import Flask
 from flask_socketio import SocketIO
 import config
 from flask_cors import CORS
+from .database import db, Config
 
 socketio = SocketIO(async_mode='threading', cors_allowed_origins="*")
 
@@ -10,8 +11,9 @@ def create_app():
     """Creates and configures the Flask app."""
 
     app = Flask(__name__)
+    app.config.from_object(Config)
     app.config["SECRET_KEY"] = "bardzo_tajny_klucz_do_zmiany!"  # required by SocketIO
-
+    db.init_app(app)
     CORS(app)
     socketio.init_app(app)
 

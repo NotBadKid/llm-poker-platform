@@ -2,6 +2,9 @@ from flask import request, jsonify, Blueprint
 import threading
 import app.database as db
 
+
+from .database import db, HandResult, get_aggregated_stats,  save_hand_result
+
 main_bp = Blueprint('main', __name__)
 
 try:
@@ -48,6 +51,45 @@ def get_stats():
     """
     stats = db.get_aggregated_stats()
     return jsonify(stats), 200
+
+@main_bp.route('/api/hand/record', methods=['POST'])
+def record_hand_result():
+    """Records a SINGLE hand result for ONE player."""
+    data = request.get_json()
+
+    try:
+        save_hand_result(data)
+        return jsonify({"status": "success"}), 201
+
+    except KeyError as e:
+        return jsonify({"error": f"Missing required field: {e}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/api/hand/read_all', methods=['GET'])
+def read_all_hands():
+    """Fetches all hand results efficiently."""
+    try:
+        # 1. Fetch data
+        results = db.session.execute(db.select(HandResult)).scalars().all()
+
+        # 2. Serialize to JSON (List comprehension is faster and cleaner)
+        data = [{
+            "id": r.id,
+            "game_id": r.game_id,
+            "hand": r.hand_number,
+            "player": r.player_name,
+            "model": r.model_id,
+            "net_change": r.net_change,
+            "winner": r.is_winner,
+            "timestamp": r.timestamp.isoformat()
+        } for r in results]
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def log_player_strategies(players_list: list):
     """
