@@ -50,3 +50,12 @@ export interface BotPlayerConfigUI extends BotPlayerConfig {
     id: number,
     useCustomPrompt: boolean,
 }
+
+export interface PlayerStats {
+    name: string;
+    hands_played: number;
+    hands_won: number;
+    win_rate: number;
+    total_profit: number;
+    avg_profit_per_hand: number;
+}

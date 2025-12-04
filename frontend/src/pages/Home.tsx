@@ -22,9 +22,8 @@ const Home = () => {
                 />
                 <HomeButton
                     content="LLM statistics"
-                    onClick={() => {
-                    }}
-                    disabled
+                    onClick={() => navigate("/llm-poker-platform/stats-llm")}
+                    className="bg-violet-700"
                 />
                 <HomeButton
                     content="Player statistics"
