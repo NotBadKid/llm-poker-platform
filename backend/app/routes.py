@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 import threading
-import app.database as db
+
 
 
 from .database import db, HandResult, get_aggregated_stats,  save_hand_result
@@ -49,7 +49,7 @@ def get_stats():
     """
     HTTP GET Endpoint for retrieving aggregated game statistics.
     """
-    stats = db.get_aggregated_stats()
+    stats = get_aggregated_stats()
     return jsonify(stats), 200
 
 @main_bp.route('/api/hand/record', methods=['POST'])

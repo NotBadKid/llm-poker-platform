@@ -193,7 +193,6 @@ def save_hand_result(game_id, hand_num, player_stats):
             print(f"Error saving hand result: {e}")
             raise e
 
-
 def get_aggregated_stats():
     """
     Gets model stats from the start (whole history) as a flat list
@@ -202,8 +201,13 @@ def get_aggregated_stats():
     with app.app_context():
         try:
             # Use SQLAlchemy engine for pandas connection
-            stmt = db.session.query(HandResult).statement
-            df = pd.read_sql(stmt, db.session.bind)
+            query = db.session.query(HandResult)
+
+            # 2. Use the live session connection with pd.read_sql
+            df = pd.read_sql(query.statement, db.session.connection())
+
+            if df.empty:
+                return []
 
             if df.empty:
                 return []
