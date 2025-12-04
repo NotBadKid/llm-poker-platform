@@ -2,7 +2,7 @@ import requests
 import json
 import config
 
-schema_prompt="You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. Do not include any other text, reasoning, or explanations outside of the JSON object. The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}.In your game please follow that strategy:"
+schema_prompt="You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. Do not include any other text, reasoning, or explanations outside of the JSON object. The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}. The message field is public table talk. Every opponent sees it. You may or may not use this to your advantage. Remember that other players also may bluff. In your game please follow that strategy:"
 default_prompt = "play optimally , based on your hand , position and pot odds, play GTO"
 def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_prompt, temperature:float = 1.0) -> dict | None:
     """
