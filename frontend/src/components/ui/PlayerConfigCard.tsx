@@ -18,7 +18,7 @@ const PlayerConfigCard = ({ index, bot, availableModels, onUpdate }: Props) => {
     const [isPromptHidden, setIsPromptHidden] = useState(false);
 
     return (
-        <div className="bg-slate-900 p-5 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-6 transition-all hover:border-slate-600">
+        <div className="bg-slate-900 p-5 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-6 transition-all hover:border-purple-500">
             <div className="w-full md:w-1/3 flex flex-col gap-4">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                     <span className="bg-slate-800 text-purple-500 px-2 py-1 rounded text-sm">#{index + 1}</span>
