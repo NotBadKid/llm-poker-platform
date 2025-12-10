@@ -221,7 +221,7 @@ def start_game_session(game_config: dict, game_id: str):
                 stats_entry = {
                     'name': p_data['name'],
                     'model': p_data['model_id'],
-                    'temp': p_data.get('temperature', 1.0),  # Jeśli jest w configu
+                    'temp': p_data.get('temperature', 1.0),
                     'before': stacks_before_hand[g_idx],
                     'after': current_stacks[g_idx]
                 }
