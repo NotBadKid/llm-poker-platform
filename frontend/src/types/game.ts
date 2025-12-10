@@ -22,6 +22,7 @@ export interface LastEvent {
 }
 
 export interface GameState {
+    gameId: string | null,
     gameStage: string | null,
     pot: number,
     communityCards: CardId[],

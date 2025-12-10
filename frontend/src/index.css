@@ -116,4 +116,13 @@ body {
             @apply py-4 px-4 text-center;
         }
     }
+
+    #game-flow-controls-container {
+        @apply absolute top-1/6 z-[9999] left-1/2 -translate-x-1/2 text-center flex gap-4;
+
+        button {
+            @apply border-2 border-white px-10 py-2 rounded-2xl text-xl shadow-lg cursor-pointer tracking-wide hover:scale-105
+        }
+    }
+
 }
