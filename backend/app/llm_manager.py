@@ -51,6 +51,7 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
     print(f"[LLM Manager] Sending prompt to model: {model_id}...")
 
     for attempt in range(MAX_RETRIES+1):
+        print(f"[LLM Manager] Attempt {attempt + 1} of {MAX_RETRIES + 1}...")
         try:
             response = requests.post(
                 config.OPENROUTER_API_URL,
@@ -70,10 +71,8 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
                     print(f"[LLM Manager] Error: 429 Rate Limit exceeded after {MAX_RETRIES} retries.")
                     return None
 
-                # Obsługa błędu 400 (Bad Request) - Logowanie szczegółów
             if response.status_code == 400:
                 print(f"[LLM Manager] Error 400 (Bad Request). Response body: {response.text}")
-                # 400 zazwyczaj nie ma sensu ponawiać (błąd w zapytaniu), chyba że API jest niestabilne
                 return None
 
             response.raise_for_status()
@@ -98,13 +97,13 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
                 print(f"Received: {llm_response_content}")
                 return None
 
-    except requests.exceptions.RequestException as e:
-        print(f"[LLM Manager] OpenRouter API error: {e}")
-        if attempt < MAX_RETRIES:
-            time.sleep(2)
-            continue
-        return None
-    except KeyError:
-        print(f"[LLM Manager] Error: Unexpected response format from OpenRouter.")
-        print(f"Received: {response.text}")
-        return None
+        except requests.exceptions.RequestException as e:
+            print(f"[LLM Manager] OpenRouter API error: {e}")
+            if attempt < MAX_RETRIES:
+                time.sleep(2)
+                continue
+            return None
+        except KeyError:
+            print(f"[LLM Manager] Error: Unexpected response format from OpenRouter.")
+            print(f"Received: {response.text}")
+            return None
