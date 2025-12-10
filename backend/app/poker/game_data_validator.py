@@ -71,11 +71,6 @@ def map_game_config_to_scenario(game_config: dict) -> ScenarioSchema:
     None values for required parameters.
     """
 
-    # Helper to get value, checking for key presence AND if the value is None
-    def get_safe_value(key, default):
-        value = game_config.get(key, default)
-        return default if value is None else value
-
     sb = game_config.get('small_blind', DEFAULT_SB)
     bb = game_config.get('big_blind', DEFAULT_BB)
 
