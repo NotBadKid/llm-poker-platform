@@ -4,10 +4,11 @@ import json
 from math import inf
 from pokerkit import Automation, Mode, NoLimitTexasHoldem
 from pokerkit.state import State
+
+from .game_data_validator import verify_if_scenario_matches_default, map_game_config_to_scenario
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 import app.database as db
-
 
 def card_to_str(card):
     """ Safely converts a pokerkit card object to a string (e.g., 'As', 'Td'). """
@@ -55,9 +56,14 @@ def start_game_session(game_config: dict):
     """
     game_id = str(uuid.uuid4())
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
-
-    db.init_db()
-    db.create_new_game(game_id, game_config, game_config['players'])
+    is_data_valid_with_default_scenario = verify_if_scenario_matches_default(
+        map_game_config_to_scenario(game_config)
+    )
+    if is_data_valid_with_default_scenario is True:
+        db.init_db()
+        db.create_new_game(game_id, game_config, game_config['players'])
+    else:
+        print("that data is not valid to be saved to database!!")
 
     # --- Game Setup ---
     player_map = {i: player for i, player in enumerate(game_config['players'])}
@@ -164,18 +170,20 @@ def start_game_session(game_config: dict):
             action_str, amount_validated, message = validate_and_execute_action(state, action_response)
 
             print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
-
-            db.log_game_event(
-                game_id=game_id,
-                hand_num=hands_played,
-                player_name=player_data['name'],
-                model_id=player_data['model_id'],
-                hole_cards=initial_hole_cards[local_actor_index],  # Zapisujemy jakie miał karty
-                action=action_str,
-                amount=amount_validated,
-                message=message,
-                prompt_json=prompt_json
-            )
+            if is_data_valid_with_default_scenario is True:
+                db.log_game_event(
+                    game_id=game_id,
+                    hand_num=hands_played,
+                    player_name=player_data['name'],
+                    model_id=player_data['model_id'],
+                    hole_cards=initial_hole_cards[local_actor_index],  # Zapisujemy jakie miał karty
+                    action=action_str,
+                    amount=amount_validated,
+                    message=message,
+                    prompt_json=prompt_json
+                )
+            else:
+                print("that data is not valid to be saved to database!!")
 
             last_event = {
                 "action": action_str,
@@ -220,8 +228,10 @@ def start_game_session(game_config: dict):
             }
             hand_stats.append(stats_entry)
 
-        db.save_hand_result(game_id, hands_played, hand_stats)
-
+        if is_data_valid_with_default_scenario is True:
+            db.save_hand_result(game_id, hands_played, hand_stats)
+        else:
+            print("that data is not valid to be saved to database!!")
         final_state = build_frontend_state(
             state, player_map, active_indices, chat_log, last_event,
             total_players_count, current_stacks, initial_hole_cards, hand_over=True

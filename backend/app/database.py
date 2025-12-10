@@ -5,16 +5,20 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSON
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ----------------------------------------------------
 # 1. DATABASE CONFIGURATION
 # ----------------------------------------------------
 
-DB_USER = "ad"
-DB_PASSWORD = "I0sqKMwKyb4Pstymmtpb24C2OvQV6jYW"
-DB_HOST = "dpg-d4o9oie3jp1c73dc18sg-a.frankfurt-postgres.render.com"
-DB_NAME = "pdb_1292"
-DB_PORT = "5432"
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_NAME = os.getenv("DB_NAME")
+DB_PORT = os.getenv("DB_PORT")
 
 # Full Connection URI
 DATABASE_URI = (
