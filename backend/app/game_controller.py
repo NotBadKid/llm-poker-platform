@@ -29,7 +29,7 @@ class GameController:
         """
         Run by game engine, blocks the thread if game is paused.
         """
-        self.execution_event.wait() # Tu wątek wisi, jeśli event jest clear()
+        self.execution_event.wait()
 
         if self.is_paused_flag:
             self.execution_event.clear()
