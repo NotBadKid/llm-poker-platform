@@ -4,7 +4,7 @@ active_games_controllers = {}
 
 class GameController:
     def __init__(self):
-        # Event: set() = gra plays, clear() = gra paused
+        # Event: set() = game plays, clear() = game paused
         self.execution_event = threading.Event()
         self.execution_event.set()  #Game starts with playing mode
         self.is_paused_flag = False
