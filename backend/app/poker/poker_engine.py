@@ -62,8 +62,6 @@ def start_game_session(game_config: dict):
     if is_data_valid_with_default_scenario is True:
         db.init_db()
         db.create_new_game(game_id, game_config, game_config['players'])
-    else:
-        print("that data is not valid to be saved to database!!")
 
     # --- Game Setup ---
     player_map = {i: player for i, player in enumerate(game_config['players'])}
@@ -176,14 +174,12 @@ def start_game_session(game_config: dict):
                     hand_num=hands_played,
                     player_name=player_data['name'],
                     model_id=player_data['model_id'],
-                    hole_cards=initial_hole_cards[local_actor_index],  # Zapisujemy jakie miał karty
+                    hole_cards=initial_hole_cards[local_actor_index],
                     action=action_str,
                     amount=amount_validated,
                     message=message,
                     prompt_json=prompt_json
                 )
-            else:
-                print("that data is not valid to be saved to database!!")
 
             last_event = {
                 "action": action_str,
@@ -230,8 +226,7 @@ def start_game_session(game_config: dict):
 
         if is_data_valid_with_default_scenario is True:
             db.save_hand_result(game_id, hands_played, hand_stats)
-        else:
-            print("that data is not valid to be saved to database!!")
+
         final_state = build_frontend_state(
             state, player_map, active_indices, chat_log, last_event,
             total_players_count, current_stacks, initial_hole_cards, hand_over=True

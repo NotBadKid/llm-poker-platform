@@ -1,5 +1,5 @@
 
-class ScenarioDto:
+class ScenarioSchema:
     def __init__(self, small_blid, big_blind, players, default_prompts, default_temperature, starting_stack):
         self.small_blind = small_blid
         self.big_blind = big_blind
@@ -19,7 +19,7 @@ DEFAULT_TEMPERATURE = 1
 DEFAULT_STACK = 10000
 
 
-def verify_if_scenario_matches_default(input_scenario: ScenarioDto):
+def verify_if_scenario_matches_default(input_scenario: ScenarioSchema):
     """
     Checks if the input_scenario matches the predefined default scenario.
     Returns True if a match, or a dictionary of differences otherwise.
@@ -64,10 +64,9 @@ def verify_if_scenario_matches_default(input_scenario: ScenarioDto):
     else:
         return differences
 
-
-def map_game_config_to_scenario(game_config: dict) -> ScenarioDto:
+def map_game_config_to_scenario(game_config: dict) -> ScenarioSchema:
     """
-    Maps a game configuration dictionary to a ScenarioDto instance,
+    Maps a game configuration dictionary to a ScenarioSchema instance,
     ensuring maximum safety against missing keys (KeyError) and explicit
     None values for required parameters.
     """
@@ -77,8 +76,8 @@ def map_game_config_to_scenario(game_config: dict) -> ScenarioDto:
         value = game_config.get(key, default)
         return default if value is None else value
 
-    sb = get_safe_value('small_blind', DEFAULT_SB)
-    bb = get_safe_value('big_blind', DEFAULT_BB)
+    sb = game_config.get('small_blind', DEFAULT_SB)
+    bb = game_config.get('big_blind', DEFAULT_BB)
 
     # 1. Handle Players Count Robustly
     players_data = game_config.get('players')
@@ -89,11 +88,11 @@ def map_game_config_to_scenario(game_config: dict) -> ScenarioDto:
         players_count = DEFAULT_PLAYERS
 
     # 2. Handle boolean/numeric flags
-    prompts = get_safe_value('use_default_prompts', DEFAULT_PROMPTS)
-    temp = get_safe_value('use_default_temperature', DEFAULT_TEMPERATURE)
-    stack = get_safe_value('initial_stack', DEFAULT_STACK)
+    prompts = game_config.get('user_prompt', DEFAULT_PROMPTS)
+    temp = game_config.get('temperature', DEFAULT_TEMPERATURE)
+    stack = game_config.get('initial_stack', DEFAULT_STACK)
 
-    scenario_dto = ScenarioDto(
+    scenario_dto = ScenarioSchema(
         small_blid=sb,
         big_blind=bb,
         players=players_count,

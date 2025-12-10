@@ -7,7 +7,7 @@ import sys
 from app.poker.poker_engine import start_game_session
 # These are imported by poker_engine, so we need to be able to reference them.
 # We will mock the behavior of these functions in the tests.
-from app.poker.game_data_validator import map_game_config_to_scenario, verify_if_scenario_matches_default, ScenarioDto
+from app.poker.game_data_validator import map_game_config_to_scenario, verify_if_scenario_matches_default, ScenarioSchema
 
 # --- Default values for creating test configurations ---
 DEFAULT_SB = 100
@@ -59,7 +59,7 @@ class TestGameSessionValidation(unittest.TestCase):
         # Configure the mock for the scenario verification function
         mock_verify_scenario.return_value = verify_return_value
         # The map function can return a dummy object, as its output is the input to the mocked verify function
-        mock_map_scenario.return_value = ScenarioDto(None, None, None, None, None, None)
+        mock_map_scenario.return_value = ScenarioSchema(None, None, None, None, None, None)
 
         # Mock the LLM to return a simple 'check' action to prevent complex game logic
         mock_llm_manager.get_llm_action.return_value = {'action': 'check', 'amount': 0, 'message': 'test'}
@@ -79,9 +79,6 @@ class TestGameSessionValidation(unittest.TestCase):
             verify_return_value=True
         )
 
-        # Assert that the "invalid data" message is NOT present
-        self.assertNotIn("that data is not valid to be saved to database!!", print_output)
-
         # Assert that the core database functions were called
         mock_db.init_db.assert_called_once()
         mock_db.create_new_game.assert_called_once()
@@ -100,9 +97,6 @@ class TestGameSessionValidation(unittest.TestCase):
             game_config=self.invalid_config,
             verify_return_value=mock_differences
         )
-
-        # Assert that the "invalid data" message IS present
-        self.assertIn("that data is not valid to be saved to database!!", print_output)
 
         # Assert that NO database functions were called
         mock_db.init_db.assert_not_called()
@@ -131,9 +125,6 @@ class TestGameSessionValidation(unittest.TestCase):
             verify_return_value=mock_differences
         )
 
-        # Assert that the "invalid data" message IS present
-        self.assertIn("that data is not valid to be saved to database!!", print_output)
-
         # Assert that NO database functions were called
         mock_db.init_db.assert_not_called()
         mock_db.create_new_game.assert_not_called()
@@ -160,9 +151,6 @@ class TestGameSessionValidation(unittest.TestCase):
             game_config=custom_temp_config,
             verify_return_value=mock_differences
         )
-
-        # Assert that the "invalid data" message IS present
-        self.assertIn("that data is not valid to be saved to database!!", print_output)
 
         # Assert that NO database functions were called
         mock_db.init_db.assert_not_called()
