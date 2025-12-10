@@ -109,7 +109,7 @@ def start_game_session(game_config: dict, game_id: str):
 
             hands_played += 1
 
-            stacks_before_hand = list(current_stacks)  # Kopia listy
+            stacks_before_hand = list(current_stacks)
 
             game_story = []
             chat_log = []
@@ -177,7 +177,7 @@ def start_game_session(game_config: dict, game_id: str):
                     hand_num=hands_played,
                     player_name=player_data['name'],
                     model_id=player_data['model_id'],
-                    hole_cards=initial_hole_cards[local_actor_index],  # Zapisujemy jakie miał karty
+                    hole_cards=initial_hole_cards[local_actor_index],
                     action=action_str,
                     amount=amount_validated,
                     message=message,
@@ -242,7 +242,6 @@ def start_game_session(game_config: dict, game_id: str):
     except Exception as e:
         print(f"[Poker Engine] Error in game {game_id}: {e}")
     finally:
-        # 2. Czyszczenie rejestru
         remove_controller(game_id)
         print(f"[Poker Engine] Game {game_id} finished. Controller removed.")
 
