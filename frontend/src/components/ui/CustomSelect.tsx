@@ -45,22 +45,24 @@ const CustomSelect = <T extends number | string>({ value, onChange, options, cla
 
             {isOpen && (
                 <div className="absolute top-full left-0 w-full mt-2 bg-slate-900 border border-purple-500 rounded-lg shadow-xl z-50 overflow-hidden">
-                    {options.map((option) => (
-                        <div
-                            key={option.value}
-                            onClick={() => {
-                                onChange(option.value);
-                                setIsOpen(false);
-                            }}
-                            className={`
-                                p-3 cursor-pointer transition-colors duration-150
-                                ${option.value === value ? 'bg-purple-900/50 text-purple-200' : 'text-gray-300'}
-                                hover:bg-purple-700 hover:text-white
-                            `}
-                        >
-                            {option.label}
-                        </div>
-                    ))}
+                    <div className="max-h-72 overflow-y-auto custom-scrollbar">
+                        {options.map((option) => (
+                            <div
+                                key={option.value}
+                                onClick={() => {
+                                    onChange(option.value);
+                                    setIsOpen(false);
+                                }}
+                                className={`
+                                    p-3 cursor-pointer transition-colors duration-150
+                                    ${option.value === value ? 'bg-purple-900/50 text-purple-200' : 'text-gray-300'}
+                                    hover:bg-purple-700 hover:text-white
+                                `}
+                            >
+                                {option.label}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
