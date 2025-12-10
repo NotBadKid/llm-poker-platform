@@ -66,7 +66,7 @@ class TestGameSessionValidation(unittest.TestCase):
 
         # Redirect stdout to capture print statements
         with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            start_game_session(game_config)
+            start_game_session(game_config,1)
             return mock_stdout.getvalue(), mock_db
 
     def test_01_valid_scenario_saves_to_database(self):
