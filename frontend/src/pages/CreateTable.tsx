@@ -6,6 +6,7 @@ import {AVAILABLE_MODELS} from "../const";
 import CustomSelect from "../components/ui/CustomSelect.tsx";
 import GameInput from "../components/ui/GameInput.tsx";
 import PlayerConfigCard from "../components/ui/PlayerConfigCard.tsx";
+import {useGameStore} from "../store/useGameStore.ts";
 
 const CreateTable = () => {
     const navigate = useNavigate();
@@ -16,6 +17,8 @@ const CreateTable = () => {
     const [startingChips, setStartingChips] = useState<number>(10000);
     const [playerCount, setPlayerCount] = useState<number>(4);
     const [numberOfHands, setNumberOfHands] = useState<number>(7);
+
+    const setGameId = useGameStore((state) => state.setGameId);
 
     const [bots, setBots] = useState<BotPlayerConfigUI[]>([
         {
@@ -97,7 +100,12 @@ const CreateTable = () => {
 
         console.log("payload:", payload);
 
-        await startGame(payload);
+        const response = await startGame(payload);
+
+        if (response.game_id) {
+            setGameId(response.game_id)
+        }
+
         navigate("/llm-poker-platform/game");
         setIsLoading(false)
 

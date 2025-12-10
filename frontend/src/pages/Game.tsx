@@ -4,6 +4,7 @@ import NavBar from "../components/NavBar.tsx";
 import SideBar from "../components/SideBar.tsx";
 import PokerTable from "../components/ui/PokerTable.tsx";
 import PlayerCard from "../components/ui/PlayerCard.tsx";
+import GameControls from "../components/ui/GameControls.tsx";
 
 const Game = () => {
     useGameSocket();
@@ -30,6 +31,8 @@ const Game = () => {
             <SideBar chatLogs={chatLog} />
 
             <div className="w-full h-full relative">
+
+                <GameControls/>
 
                 <PokerTable
                     pot={pot}
