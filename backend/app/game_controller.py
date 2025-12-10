@@ -1,48 +1,39 @@
 import threading
 
-# Globalny rejestr przechowujący kontrolery dla aktywnych gier
-# Klucz: game_id (str), Wartość: instancja GameController
 active_games_controllers = {}
 
 class GameController:
     def __init__(self):
-        # Event: set() = gra działa, clear() = gra stoi
+        # Event: set() = gra plays, clear() = gra paused
         self.execution_event = threading.Event()
-        self.execution_event.set()  # Domyślnie gra rusza od razu
-        self.is_paused_flag = False # Logiczna flaga trybu pauzy
+        self.execution_event.set()  #Game starts with playing mode
+        self.is_paused_flag = False
 
     def pause(self):
-        """Zatrzymuje grę (czerwone światło)."""
         self.is_paused_flag = True
         self.execution_event.clear()
 
     def play(self):
-        """Wznawia ciągłą grę (zielone światło)."""
         self.is_paused_flag = False
         self.execution_event.set()
 
     def step(self):
         """
-        Puszcza grę o jeden ruch (step-forward).
-        Otwiera bramkę na chwilę, ale zostawia flagę is_paused_flag=True,
-        co spowoduje zatrzymanie przy następnym sprawdzeniu w wait_for_turn.
+        Opens the gate for a moment but leaves flag is_paused_flag=True,
+        what results in a pause in the next check w wait_for_turn.
         """
         self.is_paused_flag = True
         self.execution_event.set()
 
     def wait_for_turn(self):
         """
-        Ta metoda jest wywoływana przez silnik gry.
-        Blokuje wątek, jeśli gra jest zapauzowana.
+        Run by game engine, blocks the thread if game is paused.
         """
         self.execution_event.wait() # Tu wątek wisi, jeśli event jest clear()
 
-        # Jeśli jesteśmy w trybie pauzy (np. po wykonaniu stepa),
-        # natychmiast zamykamy bramkę dla następnego obrotu.
         if self.is_paused_flag:
             self.execution_event.clear()
 
-# --- Funkcje pomocnicze do zarządzania rejestrem ---
 
 def get_controller(game_id: str):
     return active_games_controllers.get(game_id)
