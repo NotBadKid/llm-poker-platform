@@ -1,9 +1,10 @@
 from flask import request, jsonify, Blueprint
 import threading
-
+import uuid
 
 
 from .database import db, HandResult, get_aggregated_stats,  save_hand_result
+from .game_controller import get_controller
 
 main_bp = Blueprint('main', __name__)
 
@@ -15,6 +16,7 @@ except ImportError as e:
     print("Server will run, but starting a game will fail.")
     print("="*50)
     poker_engine = None
+    active_games_controllers = {}
 
 
 @main_bp.route('/game/start', methods=['POST'])
@@ -36,13 +38,44 @@ def start_game():
 
     print(f"[Routes] Received start game request with players: {game_config.get('players')}")
 
+    game_id = str(uuid.uuid4())
+
+    print(f"[Routes] Starting game {game_id}...")
+
     game_thread = threading.Thread(
         target=poker_engine.start_game_session,
-        args=(game_config,)
+        args=(game_config, game_id)
     )
     game_thread.start()
 
-    return jsonify({"status": "Game session started"}), 202
+    return jsonify({
+        "status": "Game session started",
+        "game_id": game_id
+    }), 202
+
+@main_bp.route('/game/<game_id>/pause', methods=['POST'])
+def pause_game(game_id):
+    controller = get_controller(game_id)
+    if controller:
+        controller.pause()
+        return jsonify({"status": "paused", "game_id": game_id}), 200
+    return jsonify({"error": "Game not found or finished"}), 404
+
+@main_bp.route('/game/<game_id>/resume', methods=['POST'])
+def resume_game(game_id):
+    controller = get_controller(game_id)
+    if controller:
+        controller.play()
+        return jsonify({"status": "resumed", "game_id": game_id}), 200
+    return jsonify({"error": "Game not found or finished"}), 404
+
+@main_bp.route('/game/<game_id>/step', methods=['POST'])
+def step_game(game_id):
+    controller = get_controller(game_id)
+    if controller:
+        controller.step()
+        return jsonify({"status": "stepped_forward", "game_id": game_id}), 200
+    return jsonify({"error": "Game not found or finished"}), 404
 
 @main_bp.route('/stats', methods=['GET'])
 def get_stats():
