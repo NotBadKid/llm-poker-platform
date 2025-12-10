@@ -14,8 +14,8 @@ DEFAULT_SB = 100
 DEFAULT_BB = 200
 DEFAULT_PLAYERS = 4
 # Assuming these are boolean flags or non-empty values for the default
-DEFAULT_PROMPTS = True  # Assuming a boolean check for demonstration
-DEFAULT_TEMPERATURE = True  # Assuming a boolean check for demonstration
+DEFAULT_PROMPTS =""
+DEFAULT_TEMPERATURE = 1
 DEFAULT_STACK = 10000
 
 

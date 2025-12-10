@@ -18,23 +18,28 @@ class TestGameSessionValidation(unittest.TestCase):
 
     def setUp(self):
         """Set up test configurations before each test."""
-        self.dummy_player = {'name': 'PlayerA', 'model_id': 'mock_model', 'temperature': 0.7}
+        # Valid player: Default temperature (1) and Default prompt ("")
+        self.valid_player = {
+            'name': 'PlayerA', 
+            'model_id': 'mock_model', 
+            'temperature': 1, 
+            'user_prompt': ""
+        }
 
         # 1. A valid game configuration that should pass validation
-        # This implies default prompts and default temperature as per the mock logic
         self.valid_config = {
             'small_blind': DEFAULT_SB,
             'big_blind': DEFAULT_BB,
-            'players': [self.dummy_player] * 4,  # 4 players
+            'players': [self.valid_player] * 4,  # 4 players
             'initial_stack': DEFAULT_STACK,
             'number_of_hands': 1
         }
 
-        # 2. An invalid game configuration that should fail validation
+        # 2. An invalid game configuration (e.g. wrong blinds)
         self.invalid_config = {
             'small_blind': 50,  # Invalid SB
             'big_blind': 200,
-            'players': [self.dummy_player],  # Invalid player count
+            'players': [self.valid_player] * 4,
             'initial_stack': 10000,
             'number_of_hands': 1
         }
@@ -66,7 +71,7 @@ class TestGameSessionValidation(unittest.TestCase):
 
     def test_01_valid_scenario_saves_to_database(self):
         """
-        Test Case 1: If the scenario is valid (implies Default Prompts), database functions should be called.
+        Test Case 1: If the scenario is valid (Temp=1, Prompt=""), database functions should be called.
         """
         # For a valid scenario, verify_if_scenario_matches_default returns True
         print_output, mock_db = self.run_test_scenario(
@@ -83,7 +88,7 @@ class TestGameSessionValidation(unittest.TestCase):
         mock_db.log_game_event.assert_called()  # May be called multiple times
         mock_db.save_hand_result.assert_called_once()
 
-        print("\nTest 1 Passed: Valid data (Default Prompts) resulted in expected DB calls.")
+        print("\nTest 1 Passed: Valid data (Temp=1, Prompt='') resulted in expected DB calls.")
 
     def test_02_invalid_scenario_prevents_database_operations(self):
         """
@@ -109,14 +114,17 @@ class TestGameSessionValidation(unittest.TestCase):
 
     def test_03_custom_prompts_prevents_database_operations(self):
         """
-        Test Case 3: If the scenario uses Custom Prompts (not default), it is invalid for DB saving.
+        Test Case 3: If the scenario uses Custom Prompts (not empty string), it is invalid for DB saving.
         """
         # Simulate validation failure specifically due to prompts
         mock_differences = {'prompts': {'Expected': 'Default', 'Actual': 'Custom'}}
         
-        # Use a config that we conceptually treat as having custom prompts
+        # Configuration with custom prompt
+        custom_prompt_player = self.valid_player.copy()
+        custom_prompt_player['user_prompt'] = "Always All-in"
+        
         custom_prompt_config = self.valid_config.copy()
-        custom_prompt_config['custom_prompts'] = True
+        custom_prompt_config['players'] = [custom_prompt_player] * 4
 
         print_output, mock_db = self.run_test_scenario(
             game_config=custom_prompt_config,
@@ -133,6 +141,36 @@ class TestGameSessionValidation(unittest.TestCase):
         mock_db.save_hand_result.assert_not_called()
 
         print("\nTest 3 Passed: Custom prompts correctly skipped all database operations.")
+
+    def test_04_custom_temperature_prevents_database_operations(self):
+        """
+        Test Case 4: If the scenario uses Custom Temperature (not 1), it is invalid for DB saving.
+        """
+        # Simulate validation failure specifically due to temperature
+        mock_differences = {'temperature': {'Expected': 1, 'Actual': 0.7}}
+        
+        # Configuration with custom temperature
+        custom_temp_player = self.valid_player.copy()
+        custom_temp_player['temperature'] = 0.7
+        
+        custom_temp_config = self.valid_config.copy()
+        custom_temp_config['players'] = [custom_temp_player] * 4
+
+        print_output, mock_db = self.run_test_scenario(
+            game_config=custom_temp_config,
+            verify_return_value=mock_differences
+        )
+
+        # Assert that the "invalid data" message IS present
+        self.assertIn("that data is not valid to be saved to database!!", print_output)
+
+        # Assert that NO database functions were called
+        mock_db.init_db.assert_not_called()
+        mock_db.create_new_game.assert_not_called()
+        mock_db.log_game_event.assert_not_called()
+        mock_db.save_hand_result.assert_not_called()
+
+        print("\nTest 4 Passed: Custom temperature correctly skipped all database operations.")
 
 if __name__ == '__main__':
     unittest.main()
