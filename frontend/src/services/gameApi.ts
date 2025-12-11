@@ -22,3 +22,27 @@ export const startGame = async (gameConfig: GameStartPayload) => {
         alert(":(");
     }
 };
+
+export const pauseGame = async (gameId: string) => {
+    const response = await fetch(`${API_URL}/game/${gameId}/pause`, {
+        method: 'POST',
+    });
+    if (!response.ok) throw new Error("Failed to pause");
+    return response.json();
+};
+
+export const resumeGame = async (gameId: string) => {
+    const response = await fetch(`${API_URL}/game/${gameId}/resume`, {
+        method: 'POST',
+    });
+    if (!response.ok) throw new Error("Failed to resume");
+    return response.json();
+};
+
+export const stepGame = async (gameId: string) => {
+    const response = await fetch(`${API_URL}/game/${gameId}/step`, {
+        method: 'POST',
+    });
+    if (!response.ok) throw new Error("Failed to step");
+    return response.json();
+};

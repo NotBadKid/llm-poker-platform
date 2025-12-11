@@ -1,9 +1,11 @@
 export const AVAILABLE_MODELS = [
-    { name: "KAT-Coder-Pro V1", id: "kwaipilot/kat-coder-pro:free" },
-    { name: "Grok 4.1 Fast", id: "x-ai/grok-4.1-fast:free" },
-    { name: "Nemotron Nano 12B 2 VL", id: "nvidia/nemotron-nano-12b-v2-vl:free" },
-    { name: "LongCat Flash Chat", id: "meituan/longcat-flash-chat:free" },
-    { name: "Gemma 3 27B", id: "google/gemma-3-27b-it:free" },
-    { name: "Gemini 2.0 Flash Experimental", id: "google/gemini-2.0-flash-exp:free" },
-    { name: "Hermes 3 405B Instruct", id: "nousresearch/hermes-3-llama-3.1-405b:free" },
+    { name: "Mistral: Devstral 2 2512", id: "mistralai/devstral-2512:free" },
+    { name: "AllenAI: Olmo 3 32B Think", id: "allenai/olmo-3-32b-think:free" },
+    { name: "Kwaipilot: KAT-Coder-Pro V1", id: "kwaipilot/kat-coder-pro:free" },
+    { name: "Meituan: LongCat Flash Chat", id: "meituan/longcat-flash-chat:free" },
+    { name: "OpenAI: gpt-oss-20b (free)", id: "openai/gpt-oss-20b:free" },
+    { name: "Qwen: Qwen3 4B", id: "qwen/qwen3-4b:free"},
+    { name: "Qwen: Qwen3 235B A22B", id: "qwen/qwen3-235b-a22b:free" },
+    { name: "Google: Gemma 3 27B", id: "google/gemma-3-27b-it:free" },
+
 ];

@@ -2,6 +2,7 @@ import type {GameState} from "../types/game.ts";
 import {create} from "zustand/react";
 
 const initialState: GameState = {
+    gameId: null,
     gameStage: "Idle",
     pot: 0,
     communityCards: [null, null, null, null, null],
@@ -13,9 +14,11 @@ const initialState: GameState = {
 
 interface GameStore extends GameState {
     setGameState: (newState: GameState) => void;
+    setGameId: (id: string) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
     ...initialState,
-    setGameState: (newState) => set(newState)
+    setGameState: (newState) => set(newState),
+    setGameId: (id) => set({gameId: id}),
 }))
