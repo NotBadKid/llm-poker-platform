@@ -225,6 +225,8 @@ def start_game_session(game_config: dict, game_id: str):
 
             hand_stats = []
             for g_idx, p_data in player_map.items():
+                if stacks_before_hand[g_idx] == 0:
+                    continue
 
                 stats_entry = {
                     'name': p_data['name'],
