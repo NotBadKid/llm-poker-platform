@@ -176,19 +176,21 @@ def start_game_session(game_config: dict, game_id: str):
 
                 action_str, amount_validated, message = validate_and_execute_action(state, action_response)
 
-            print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
-            if is_data_valid_with_default_scenario is True:
-                db.log_game_event(
-                    game_id=game_id,
-                    hand_num=hands_played,
-                    player_name=player_data['name'],
-                    model_id=player_data['model_id'],
-                    hole_cards=initial_hole_cards[local_actor_index],
-                    action=action_str,
-                    amount=amount_validated,
-                    message=message,
-                    prompt_json=prompt_json
-                )
+
+                print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
+                print("Default scenario: ", is_data_valid_with_default_scenario)
+                if is_data_valid_with_default_scenario is True:
+                    db.log_game_event(
+                        game_id=game_id,
+                        hand_num=hands_played,
+                        player_name=player_data['name'],
+                        model_id=player_data['model_id'],
+                        hole_cards=initial_hole_cards[local_actor_index],
+                        action=action_str,
+                        amount=amount_validated,
+                        message=message,
+                        prompt_json=prompt_json
+                    )
 
                 last_event = {
                     "action": action_str,
@@ -236,16 +238,16 @@ def start_game_session(game_config: dict, game_id: str):
             if is_data_valid_with_default_scenario is True:
                 db.save_hand_result(game_id, hands_played, hand_stats)
 
-                final_state = build_frontend_state(
-                    state, player_map, active_indices, chat_log, last_event,
-                    total_players_count, current_stacks, initial_hole_cards, hand_over=True
-                )
-                broadcaster.broadcast_game_state(final_state)
+            final_state = build_frontend_state(
+                state, player_map, active_indices, chat_log, last_event,
+                total_players_count, current_stacks, initial_hole_cards, hand_over=True
+            )
+            broadcaster.broadcast_game_state(final_state)
 
-                players_with_chips_check = sum(1 for stack in current_stacks if stack > 0)
-                if players_with_chips_check > 1 and (max_hands_to_play is None or hands_played < max_hands_to_play):
-                    print(f"[Poker Engine] Next hand in 5 seconds...")
-                    time.sleep(5)
+            players_with_chips_check = sum(1 for stack in current_stacks if stack > 0)
+            if players_with_chips_check > 1 and (max_hands_to_play is None or hands_played < max_hands_to_play):
+                print(f"[Poker Engine] Next hand in 5 seconds...")
+                time.sleep(5)
     except Exception as e:
         print(f"[Poker Engine] Error in game {game_id}: {e}")
     finally:
