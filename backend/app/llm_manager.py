@@ -1,6 +1,12 @@
 import requests
 import json
 import config
+import time
+import random
+
+
+MAX_RETRIES = 3
+INITIAL_BACKOFF = 2
 
 schema_prompt="You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. Do not include any other text, reasoning, or explanations outside of the JSON object. The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}. The message field is public table talk. Every opponent sees it. You may or may not use this to your advantage. Remember that other players also may bluff. In your game please follow that strategy:"
 default_prompt = "play optimally , based on your hand , position and pot odds, play GTO"
@@ -44,40 +50,60 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
 
     print(f"[LLM Manager] Sending prompt to model: {model_id}...")
 
-    try:
-        response = requests.post(
-            config.OPENROUTER_API_URL,
-            headers=headers,
-            data=json.dumps(data),
-            timeout=30
-        )
-
-        response.raise_for_status()
-
-        response_data = response.json()
-
-        print(response_data)
-        llm_response_content = response_data['choices'][0]['message']['content']
-
-        print(f"[LLM Manager] Received response: {llm_response_content}")
-
+    for attempt in range(MAX_RETRIES+1):
+        print(f"[LLM Manager] Attempt {attempt + 1} of {MAX_RETRIES + 1}...")
         try:
-            action_json = json.loads(llm_response_content)
-            if "action" not in action_json:
-                print(f"[LLM Manager] Error: no 'action' field in LLM response.")
+            response = requests.post(
+                config.OPENROUTER_API_URL,
+                headers=headers,
+                data=json.dumps(data),
+                timeout=30
+            )
+
+            if response.status_code == 429:
+                if attempt < MAX_RETRIES:
+                    sleep_time = INITIAL_BACKOFF * (2 ** attempt) + random.uniform(0, 1)
+                    print(
+                        f"[LLM Manager] Rate Limit (429). Retrying in {sleep_time:.2f}s... (Attempt {attempt + 1}/{MAX_RETRIES})")
+                    time.sleep(sleep_time)
+                    continue
+                else:
+                    print(f"[LLM Manager] Error: 429 Rate Limit exceeded after {MAX_RETRIES} retries.")
+                    return None
+
+            if response.status_code == 400:
+                print(f"[LLM Manager] Error 400 (Bad Request). Response body: {response.text}")
                 return None
 
-            return action_json
+            response.raise_for_status()
 
-        except json.JSONDecodeError:
-            print(f"[LLM Manager] Error: LLM model did not return proper JSON format.")
-            print(f"Received: {llm_response_content}")
+            response_data = response.json()
+
+            print(response_data)
+            llm_response_content = response_data['choices'][0]['message']['content']
+
+            print(f"[LLM Manager] Received response: {llm_response_content}")
+
+            try:
+                action_json = json.loads(llm_response_content)
+                if "action" not in action_json:
+                    print(f"[LLM Manager] Error: no 'action' field in LLM response.")
+                    return None
+
+                return action_json
+
+            except json.JSONDecodeError:
+                print(f"[LLM Manager] Error: LLM model did not return proper JSON format.")
+                print(f"Received: {llm_response_content}")
+                return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"[LLM Manager] OpenRouter API error: {e}")
+            if attempt < MAX_RETRIES:
+                time.sleep(2)
+                continue
             return None
-
-    except requests.exceptions.RequestException as e:
-        print(f"[LLM Manager] OpenRouter API error: {e}")
-        return None
-    except KeyError:
-        print(f"[LLM Manager] Error: Unexpected response format from OpenRouter.")
-        print(f"Received: {response.text}")
-        return None
+        except KeyError:
+            print(f"[LLM Manager] Error: Unexpected response format from OpenRouter.")
+            print(f"Received: {response.text}")
+            return None
