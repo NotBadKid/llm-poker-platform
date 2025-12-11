@@ -4,6 +4,8 @@ import json
 from math import inf
 from pokerkit import Automation, Mode, NoLimitTexasHoldem
 from pokerkit.state import State
+
+from .game_data_validator import verify_if_scenario_matches_default, map_game_config_to_scenario
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 import app.database as db
@@ -54,12 +56,16 @@ def start_game_session(game_config: dict, game_id: str):
     Main function called by /game/start in a separate thread.
     Runs and manages the full poker game session.
     """
+    game_id = str(uuid.uuid4())
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
-
+    is_data_valid_with_default_scenario = verify_if_scenario_matches_default(
+        map_game_config_to_scenario(game_config)
+    )
     controller = register_controller(game_id)
     try:
-        db.init_db()
-        db.create_new_game(game_id, game_config, game_config['players'])
+        if is_data_valid_with_default_scenario is True:
+            db.init_db()
+            db.create_new_game(game_id, game_config, game_config['players'])
 
         # --- Game Setup ---
         player_map = {i: player for i, player in enumerate(game_config['players'])}
@@ -170,19 +176,21 @@ def start_game_session(game_config: dict, game_id: str):
 
                 action_str, amount_validated, message = validate_and_execute_action(state, action_response)
 
-                print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
 
-                db.log_game_event(
-                    game_id=game_id,
-                    hand_num=hands_played,
-                    player_name=player_data['name'],
-                    model_id=player_data['model_id'],
-                    hole_cards=initial_hole_cards[local_actor_index],
-                    action=action_str,
-                    amount=amount_validated,
-                    message=message,
-                    prompt_json=prompt_json
-                )
+                print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
+                print("Default scenario: ", is_data_valid_with_default_scenario)
+                if is_data_valid_with_default_scenario is True:
+                    db.log_game_event(
+                        game_id=game_id,
+                        hand_num=hands_played,
+                        player_name=player_data['name'],
+                        model_id=player_data['model_id'],
+                        hole_cards=initial_hole_cards[local_actor_index],
+                        action=action_str,
+                        amount=amount_validated,
+                        message=message,
+                        prompt_json=prompt_json
+                    )
 
                 last_event = {
                     "action": action_str,
@@ -227,7 +235,8 @@ def start_game_session(game_config: dict, game_id: str):
                 }
                 hand_stats.append(stats_entry)
 
-            db.save_hand_result(game_id, hands_played, hand_stats)
+            if is_data_valid_with_default_scenario is True:
+                db.save_hand_result(game_id, hands_played, hand_stats)
 
             final_state = build_frontend_state(
                 state, player_map, active_indices, chat_log, last_event,
