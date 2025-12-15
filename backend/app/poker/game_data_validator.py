@@ -97,3 +97,18 @@ def map_game_config_to_scenario(game_config: dict) -> ScenarioSchema:
     )
 
     return scenario_dto
+def check_if_llm_models_are_all_different_players(llms):
+    """
+    Checks if all player names in the given list of LLM models are unique.
+
+    Args:
+        llms (list): A list of dictionaries, where each dictionary represents an LLM model
+                     and is expected to have a 'name' key for the player.
+
+    Returns:
+        bool: True if all player names are unique, False otherwise.
+    """
+    player_names = [llm['model_id'] for llm in llms if 'model_id' in llm]
+    return len(set(player_names)) == len(player_names)
+
+

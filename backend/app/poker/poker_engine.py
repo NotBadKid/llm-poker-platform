@@ -5,7 +5,7 @@ from math import inf
 from pokerkit import Automation, Mode, NoLimitTexasHoldem
 from pokerkit.state import State
 
-from .game_data_validator import verify_if_scenario_matches_default, map_game_config_to_scenario
+from .game_data_validator import verify_if_scenario_matches_default, map_game_config_to_scenario,check_if_llm_models_are_all_different_players
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 import app.database as db
@@ -58,9 +58,11 @@ def start_game_session(game_config: dict, game_id: str):
     """
     game_id = str(uuid.uuid4())
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
+
     is_data_valid_with_default_scenario = verify_if_scenario_matches_default(
         map_game_config_to_scenario(game_config)
-    )
+    ) is True and check_if_llm_models_are_all_different_players(game_config['players'])
+    print(f"[Poker Engine Debug] is_data_valid_with_default_scenario: {is_data_valid_with_default_scenario}")
     controller = register_controller(game_id)
     try:
         if is_data_valid_with_default_scenario is True:
