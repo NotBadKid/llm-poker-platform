@@ -82,7 +82,11 @@ def get_stats():
     """
     HTTP GET Endpoint for retrieving aggregated game statistics.
     """
-    stats = get_aggregated_stats()
+    param = request.args.get('param', 'avg_profit_per_hand')
+
+    # If 'ascending' is missing, use '0' (which works with your logic)
+    ascending = int(request.args.get('ascending', 0))
+    stats = get_aggregated_stats(param,ascending)
     return jsonify(stats), 200
 
 @main_bp.route('/api/hand/record', methods=['POST'])

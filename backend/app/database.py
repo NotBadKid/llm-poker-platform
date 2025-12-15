@@ -197,7 +197,7 @@ def save_hand_result(game_id, hand_num, player_stats):
             print(f"Error saving hand result: {e}")
             raise e
 
-def get_aggregated_stats():
+def get_aggregated_stats(param,ascending):
     """
     Gets model stats from the start (whole history) as a flat list
     using pandas and SQLAlchemy engine.
@@ -234,7 +234,10 @@ def get_aggregated_stats():
             # Formatting results (Flattening structure)
             model_stats = model_stats.reset_index()
             model_stats = model_stats.rename(columns={'model_id': 'name'})
-
+            print(param)
+            print(ascending)
+            if param and param in model_stats.columns:
+                model_stats = model_stats.sort_values(by=param, ascending=ascending)
             # Return list of dicts (flat JSON array)
             return model_stats.to_dict('records')
 
