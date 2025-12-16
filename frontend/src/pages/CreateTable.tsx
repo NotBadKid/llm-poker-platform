@@ -7,6 +7,8 @@ import CustomSelect from "../components/ui/CustomSelect.tsx";
 import GameInput from "../components/ui/GameInput.tsx";
 import PlayerConfigCard from "../components/ui/PlayerConfigCard.tsx";
 import {useGameStore} from "../store/useGameStore.ts";
+import ConnectedButton from "../components/ui/ConnectedButton.tsx";
+import Tooltip from "../components/ui/Tooltip.tsx";
 
 const CreateTable = () => {
     const navigate = useNavigate();
@@ -17,6 +19,7 @@ const CreateTable = () => {
     const [startingChips, setStartingChips] = useState<number>(10000);
     const [playerCount, setPlayerCount] = useState<number>(4);
     const [numberOfHands, setNumberOfHands] = useState<number>(7);
+    const [selectedFormat, setSelectedFormat] = useState<string>("Any (Text)")
 
     const setGameId = useGameStore((state) => state.setGameId);
 
@@ -95,7 +98,8 @@ const CreateTable = () => {
             initial_stack: startingChips,
             small_blind: smallBlind,
             big_blind: bigBlind,
-            number_of_hands: numberOfHands
+            number_of_hands: numberOfHands,
+            structured_output: selectedFormat === "JSON"
         };
 
         console.log("payload:", payload);
@@ -112,13 +116,13 @@ const CreateTable = () => {
     };
 
     return (
-        <div className="min-h-screen p-8 flex flex-col items-center overflow-y-auto">
+        <div id="create-table-page">
             <h1 className="text-4xl font-bold absolute top-6 bg-gradient-to-r py-1 from-blue-500 via-violet-600 to-green-300 text-transparent bg-clip-text">Table
                 Configuration</h1>
 
             <div className="max-w-4xl w-full space-y-8 pb-20 mt-18">
-                <div className="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
-                    <h2 className="text-2xl font-semibold mb-4 text-purple-500">1. Game Rules</h2>
+                <section>
+                    <h2 className="mb-4">1. Game Rules</h2>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                         <div className="flex flex-col">
                             <label className="text-gray-400 mb-2">Number of Players</label>
@@ -161,10 +165,37 @@ const CreateTable = () => {
                             max={15}
                         />
                     </div>
-                </div>
+                </section>
+                <section>
+                    <h2 className='mb-4'>2. Developer settings</h2>
 
-                <div className="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
-                    <h2 className="text-2xl font-semibold text-purple-500 mb-6 ">2. Players</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <div className='flex gap-2 items-center'>
+                                <label className='text-gray-400'>LLM output format</label>
+                                <Tooltip>
+                                    <b>This setting controls whether the model is forced to return a response in a specific format. </b><br/>
+
+                                    Any (Text) allows the widest range of models. <br/>
+                                    JSON attempts to enforce a structured JSON response, which may favor programming-oriented models and may also cause errors. <br/>
+
+                                    We recommend keeping Any (Text). There is no visual difference.
+                                </Tooltip>
+                            </div>
+                            <ConnectedButton
+                                options={["Any (Text)", "JSON"]}
+                                className='mt-3'
+                                currentValue={selectedFormat}
+                                onChange={(newValue: string) => {
+                                    setSelectedFormat(newValue)
+                                }}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 className="mb-6">3. Players</h2>
 
                     <div className="grid grid-cols-1 gap-6">
                         {bots.map((bot, index) => (
@@ -177,7 +208,7 @@ const CreateTable = () => {
                             />
                         ))}
                     </div>
-                </div>
+                </section>
 
                 <div className="flex justify-end gap-4 pt-4">
                     <button onClick={() => navigate("/llm-poker-platform/")}
