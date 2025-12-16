@@ -99,9 +99,12 @@ class ModelInfo(db.Model):
     name = db.Column(db.String(100), nullable=False)
     model_id = db.Column(db.String(100), unique=True, nullable=False)
     parameters = db.Column(JSON)
-    cost = db.Column(db.Float)
+    input_price = db.Column(db.Float)
+    output_price = db.Column(db.Float)
     structured_outputs = db.Column(db.Boolean)
     description = db.Column(db.Text)
+    context = db.Column(db.Integer)
+    open_router_url = db.Column(db.Text)
 
     def __repr__(self):
         return f"<ModelInfo {self.name} ({self.model_id})>"
