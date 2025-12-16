@@ -8,6 +8,7 @@ import GameInput from "../components/ui/GameInput.tsx";
 import PlayerConfigCard from "../components/ui/PlayerConfigCard.tsx";
 import {useGameStore} from "../store/useGameStore.ts";
 import ConnectedButton from "../components/ui/ConnectedButton.tsx";
+import Tooltip from "../components/ui/Tooltip.tsx";
 
 const CreateTable = () => {
     const navigate = useNavigate();
@@ -166,20 +167,33 @@ const CreateTable = () => {
                     </div>
                 </section>
                 <section>
-                    <h2 className='mb-6'>2. Developer settings</h2>
+                    <h2 className='mb-4'>2. Developer settings</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label className='text-gray-400'>LLM output format</label>
+                            <div className='flex gap-2 items-center'>
+                                <label className='text-gray-400'>LLM output format</label>
+                                <Tooltip>
+                                    <b>This setting controls whether the model is forced to return a response in a specific format. </b><br/>
+
+                                    Any (Text) allows the widest range of models. <br/>
+                                    JSON attempts to enforce a structured JSON response, which may favor programming-oriented models. <br/>
+
+                                    We recommend keeping Any (Text). There is no visual difference.
+                                </Tooltip>
+                            </div>
                             <ConnectedButton
                                 options={["Any (Text)", "JSON"]}
                                 className='mt-3'
                                 currentValue={selectedFormat}
-                                onChange={(newValue: string) => {setSelectedFormat(newValue)}}
+                                onChange={(newValue: string) => {
+                                    setSelectedFormat(newValue)
+                                }}
                             />
                         </div>
                     </div>
                 </section>
+
                 <section>
                     <h2 className="mb-6">3. Players</h2>
 
