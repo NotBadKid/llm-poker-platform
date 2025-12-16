@@ -98,7 +98,7 @@ class ModelInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     model_id = db.Column(db.String(100), unique=True, nullable=False)
-    parameters = db.Column(JSON)
+    parameters = db.Column(db.Integer)
     input_price = db.Column(db.Float)
     output_price = db.Column(db.Float)
     structured_outputs = db.Column(db.Boolean)
