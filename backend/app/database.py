@@ -92,6 +92,23 @@ class HandResult(db.Model):
         return f"<HandResult {self.player_name} ({self.game_id}-{self.hand_number})>"
 
 
+class ModelInfo(db.Model):
+    __tablename__ = 'models_info'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    model_id = db.Column(db.String(100), unique=True, nullable=False)
+    parameters = db.Column(db.Integer)
+    input_price = db.Column(db.Float)
+    output_price = db.Column(db.Float)
+    structured_outputs = db.Column(db.Boolean)
+    description = db.Column(db.Text)
+    context = db.Column(db.Integer)
+    open_router_url = db.Column(db.Text)
+
+    def __repr__(self):
+        return f"<ModelInfo {self.name} ({self.model_id})>"
+
 # ----------------------------------------------------
 # 3. BUSINESS LOGIC FUNCTIONS
 # ----------------------------------------------------
