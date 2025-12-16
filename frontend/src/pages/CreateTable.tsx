@@ -177,7 +177,7 @@ const CreateTable = () => {
                                     <b>This setting controls whether the model is forced to return a response in a specific format. </b><br/>
 
                                     Any (Text) allows the widest range of models. <br/>
-                                    JSON attempts to enforce a structured JSON response, which may favor programming-oriented models. <br/>
+                                    JSON attempts to enforce a structured JSON response, which may favor programming-oriented models and may also cause errors. <br/>
 
                                     We recommend keeping Any (Text). There is no visual difference.
                                 </Tooltip>
