@@ -260,38 +260,44 @@ def get_aggregated_stats():
             return []
 
 
-def get_models_data(structured_output_only: bool = False):
+def get_models_data(structured_output_only: bool = None):
     """
-    Fetches models from the database.
+    Fetches models from the database with strict filtering.
 
     Args:
         structured_output_only (bool):
-            If True, returns only models where structured_outputs is True.
-            If False, returns ALL models.
+            If True -> Returns ONLY models where structured_outputs is True.
+            If False -> Returns ONLY models where structured_outputs is False.
+            If None  -> Returns ALL models (no filter).
     """
     try:
         # Start with a base query for all models
         stmt = db.select(ModelInfo)
 
-        # Apply filter only if specifically requested
-        if structured_output_only:
-            stmt = stmt.where(ModelInfo.structured_outputs == True)
+        # FIX: Strict filtering for both True AND False
+        if structured_output_only is not None:
+            stmt = stmt.where(ModelInfo.structured_outputs == structured_output_only)
 
         # Execute
         results = db.session.execute(stmt).scalars().all()
 
-        # Serialize
+        # Serialize full data
         return [{
             "id": m.id,
             "name": m.name,
-            "provider": getattr(m, 'provider', 'Unknown'),
-            "structured_outputs": m.structured_outputs
+            "model_id": m.model_id,
+            "parameters": m.parameters,
+            "input_price": m.input_price,
+            "output_price": m.output_price,
+            "structured_outputs": m.structured_outputs,
+            "description": m.description,
+            "context": m.context,
+            "open_router_url": m.open_router_url
         } for m in results]
 
     except Exception as e:
         print(f"Error fetching models: {e}")
         return []
-
 
 def save_models_info_list_into_database(models):
     """

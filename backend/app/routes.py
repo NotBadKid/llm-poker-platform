@@ -124,11 +124,26 @@ def read_all_hands():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @main_bp.route('/api/model', methods=['GET'])
-def get_model_info_by_structured_flag():
-    models = get_models_data(request.args.get("structured_flag"))
-    print("get models info by structured flag with "+request.args.get("structured_flag")+" status")
-    return jsonify(models), 200
+def get_models_list():
+    # Get the raw string, e.g., "true", "false", or None
+    raw_flag = request.args.get('structured_flag')
+
+    # logic to convert string to True/False/None
+    if raw_flag is None:
+        filter_val = None
+    elif raw_flag.lower() == 'true':
+        filter_val = True
+    elif raw_flag.lower() == 'false':
+        filter_val = False
+    else:
+        filter_val = None  # Fallback for invalid strings
+
+    # Pass the converted value
+    data = get_models_data(structured_output_only=filter_val)
+
+    return jsonify(data), 200
 
 @main_bp.route('/api/model', methods=['POST'])
 def put_models_info_list_into_database():
