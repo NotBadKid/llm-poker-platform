@@ -77,7 +77,7 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
                 if attempt < MAX_RETRIES:
                     sleep_time = INITIAL_BACKOFF * (2 ** attempt) + random.uniform(0, 1)
                     print(
-                        f"[LLM Manager] Rate Limit (429). Retrying in {sleep_time:.2f}s... (Attempt {attempt + 1}/{MAX_RETRIES})")
+                        f"[LLM Manager] Rate Limit (429). Retrying in {sleep_time:.2f}s...")
                     time.sleep(sleep_time)
                     continue
                 else:
