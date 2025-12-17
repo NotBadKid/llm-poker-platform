@@ -45,6 +45,7 @@ export interface GameStartPayload {
     small_blind: number,
     big_blind: number,
     number_of_hands: number,
+    structured_output: boolean,
 }
 
 export interface BotPlayerConfigUI extends BotPlayerConfig {
