@@ -70,7 +70,7 @@ def start_game_session(game_config: dict, game_id: str):
         # --- Game Setup ---
         player_map = {i: player for i, player in enumerate(game_config['players'])}
         total_players_count = len(player_map)
-
+        structured_output = game_config.get('structured_output', False)
         current_stacks = [game_config.get('initial_stack', 10000)] * total_players_count
         blinds = (game_config.get('small_blind', 10), game_config.get('big_blind', 20))
         big_blind = blinds[1]
@@ -167,12 +167,19 @@ def start_game_session(game_config: dict, game_id: str):
 
                 prompt_json = build_llm_prompt(state, local_actor_index, active_indices, player_map, game_story)
                 user_strategy = player_data.get('user_prompt')
-
-                action_response = llm_manager.get_llm_action(
-                    model_id=player_data['model_id'],
-                    prompt_json=prompt_json,
-                    user_prompt=user_strategy
-                )
+                action_response=None
+                if structured_output:
+                    action_response = llm_manager.get_llm_action(
+                        model_id=player_data['model_id'],
+                        prompt_json=prompt_json,
+                        user_prompt=user_strategy
+                    )
+                else:
+                    action_response = llm_manager.get_llm_action_text(
+                        model_id=player_data['model_id'],
+                        prompt_json=prompt_json,
+                        user_prompt=user_strategy
+                    )
 
                 action_str, amount_validated, message = validate_and_execute_action(state, action_response)
 
