@@ -3,7 +3,7 @@ import threading
 import uuid
 
 
-from .database import db, HandResult, get_aggregated_stats,  save_hand_result
+from .database import db, HandResult, get_aggregated_stats,  save_hand_result, get_models_data, save_models_info_list_into_database
 from .game_controller import get_controller
 
 main_bp = Blueprint('main', __name__)
@@ -123,6 +123,17 @@ def read_all_hands():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@main_bp.route('/api/model', methods=['GET'])
+def get_model_info_by_structured_flag():
+    models = get_models_data(request.args.get("structured_flag"))
+    print("get models info by structured flag with "+request.args.get("structured_flag")+" status")
+    return jsonify(models), 200
+
+@main_bp.route('/api/model', methods=['POST'])
+def put_models_info_list_into_database():
+    save_models_info_list_into_database(request.get_json())
+    return jsonify({"status": "success"}), 200
 
 def log_player_strategies(players_list: list):
     """

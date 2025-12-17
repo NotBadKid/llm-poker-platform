@@ -10,3 +10,4 @@ pandas
 # --- NOWE WYMAGANE PAKIETY ---
 Flask-SQLAlchemy
 psycopg2-binary
+pytest
