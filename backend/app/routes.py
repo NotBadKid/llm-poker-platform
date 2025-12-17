@@ -127,21 +127,14 @@ def read_all_hands():
 
 @main_bp.route('/api/model', methods=['GET'])
 def get_models_list():
-    # Get the raw string, e.g., "true", "false", or None
-    raw_flag = request.args.get('structured_flag')
+    # FIX: Ensure this string matches your URL exactly ('structured_flag')
+    raw_flag = request.args.get('structured_flag', 'false')
 
-    # logic to convert string to True/False/None
-    if raw_flag is None:
-        filter_val = None
-    elif raw_flag.lower() == 'true':
-        filter_val = True
-    elif raw_flag.lower() == 'false':
-        filter_val = False
-    else:
-        filter_val = None  # Fallback for invalid strings
+    # Check if user sent 'true' (case-insensitive)
+    should_filter = raw_flag.lower() == 'true'
 
-    # Pass the converted value
-    data = get_models_data(structured_output_only=filter_val)
+    # Call the logic function
+    data = get_models_data(filter_structured=should_filter)
 
     return jsonify(data), 200
 

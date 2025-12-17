@@ -260,28 +260,22 @@ def get_aggregated_stats():
             return []
 
 
-def get_models_data(structured_output_only: bool = None):
+def get_models_data(filter_structured: bool = False):
     """
-    Fetches models from the database with strict filtering.
-
-    Args:
-        structured_output_only (bool):
-            If True -> Returns ONLY models where structured_outputs is True.
-            If False -> Returns ONLY models where structured_outputs is False.
-            If None  -> Returns ALL models (no filter).
+    Fetches models.
+    If filter_structured is True -> Returns ONLY structured models.
+    If filter_structured is False -> Returns ALL models.
     """
     try:
-        # Start with a base query for all models
         stmt = db.select(ModelInfo)
 
-        # FIX: Strict filtering for both True AND False
-        if structured_output_only is not None:
-            stmt = stmt.where(ModelInfo.structured_outputs == structured_output_only)
+        # Only apply the "WHERE" clause if the flag is True.
+        # If flag is False, we skip this and return everything.
+        if filter_structured:
+            stmt = stmt.where(ModelInfo.structured_outputs == True)
 
-        # Execute
         results = db.session.execute(stmt).scalars().all()
 
-        # Serialize full data
         return [{
             "id": m.id,
             "name": m.name,
@@ -298,6 +292,7 @@ def get_models_data(structured_output_only: bool = None):
     except Exception as e:
         print(f"Error fetching models: {e}")
         return []
+
 
 def save_models_info_list_into_database(models):
     """
