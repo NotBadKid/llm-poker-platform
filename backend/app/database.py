@@ -257,13 +257,15 @@ def get_aggregated_stats(param, ascending):
                 model_stats = model_stats.sort_values(by=param, ascending=ascending)
 
             # Fill NaN values for models missing from info table (avoids JSON serialization errors)
-            model_stats = model_stats.fillna({
+            values_to_fill = {
                 'parameters': 0,
                 'context': 0,
                 'input_price': 0.0,
                 'output_price': 0.0,
-                'name': 'Unknown Model'  # Fallback name
-            })
+                'name': 'Unknown Model'
+            }
+            model_stats = model_stats.fillna(value=values_to_fill)
+            model_stats = model_stats.where(pd.notnull(model_stats), None)
 
             # Return list of dicts
             return model_stats.to_dict('records')
