@@ -98,12 +98,12 @@ class ModelInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     model_id = db.Column(db.String(100), unique=True, nullable=False)
-    parameters = db.Column(db.Integer)
+    parameters = db.Column(db.BigInteger)
     input_price = db.Column(db.Float)
     output_price = db.Column(db.Float)
     structured_outputs = db.Column(db.Boolean)
     description = db.Column(db.Text)
-    context = db.Column(db.Integer)
+    context = db.Column(db.BigInteger)
     open_router_url = db.Column(db.Text)
 
     def __repr__(self):
@@ -260,6 +260,109 @@ def get_aggregated_stats():
             return []
 
 
+def get_models_data(filter_structured: bool = False):
+    """
+    Fetches models.
+    If filter_structured is True -> Returns ONLY structured models.
+    If filter_structured is False -> Returns ALL models.
+    """
+    try:
+        stmt = db.select(ModelInfo)
+
+        # Only apply the "WHERE" clause if the flag is True.
+        # If flag is False, we skip this and return everything.
+        if filter_structured:
+            stmt = stmt.where(ModelInfo.structured_outputs == True)
+
+        results = db.session.execute(stmt).scalars().all()
+
+        return [{
+            "id": m.id,
+            "name": m.name,
+            "model_id": m.model_id,
+            "parameters": m.parameters,
+            "input_price": m.input_price,
+            "output_price": m.output_price,
+            "structured_outputs": m.structured_outputs,
+            "description": m.description,
+            "context": m.context,
+            "open_router_url": m.open_router_url
+        } for m in results]
+
+    except Exception as e:
+        print(f"Error fetching models: {e}")
+        return []
+
+
+def save_models_info_list_into_database(models):
+    """
+    Saves or updates a list of model JSON objects into the database.
+    """
+    # Ensure we are in the app context so we can use 'db'
+    with app.app_context():
+        try:
+            for m_data in models:
+                # 1. Extract the unique ID (Handle both 'model_id' and 'id')
+                uid = m_data.get('model_id') or m_data.get('id')
+
+                if not uid:
+                    print(f"Skipping item due to missing ID: {m_data.get('name', 'Unknown')}")
+                    continue
+
+                # 2. Check if model exists
+                existing_model = db.session.execute(
+                    db.select(ModelInfo).where(ModelInfo.model_id == uid)
+                ).scalar_one_or_none()
+
+                # 3. specific mapping logic (handling potential nested pricing)
+                pricing = m_data.get('pricing', {})
+                # Handle cases where pricing is a dict or flat keys
+                if isinstance(pricing, dict):
+                    inp_price = pricing.get('prompt')
+                    out_price = pricing.get('completion')
+                else:
+                    inp_price = m_data.get('input_price')
+                    out_price = m_data.get('output_price')
+
+                # 4. Prepare values
+                update_data = {
+                    "name": m_data.get('name', 'Unknown Model'),
+                    "parameters": m_data.get('parameters'),
+                    "input_price": float(inp_price) if inp_price is not None else 0.0,
+                    "output_price": float(out_price) if out_price is not None else 0.0,
+                    "structured_outputs": m_data.get('structured_outputs', False),
+                    "description": m_data.get('description'),
+                    "context": m_data.get('context_length') or m_data.get('context'),
+                    # Handle both naming conventions for the URL
+                    "open_router_url": m_data.get('openrouter_url') or m_data.get('open_router_url')
+                }
+
+                if existing_model:
+                    # --- UPDATE EXISTING ---
+                    existing_model.name = update_data['name']
+                    existing_model.parameters = update_data['parameters']
+                    existing_model.input_price = update_data['input_price']
+                    existing_model.output_price = update_data['output_price']
+                    existing_model.structured_outputs = update_data['structured_outputs']
+                    existing_model.description = update_data['description']
+                    existing_model.context = update_data['context']
+                    existing_model.open_router_url = update_data['open_router_url']
+                else:
+                    # --- CREATE NEW ---
+                    new_model = ModelInfo(
+                        model_id=uid,
+                        **update_data
+                    )
+                    db.session.add(new_model)
+
+            # 5. Commit all changes
+            db.session.commit()
+            print(f"Successfully synced {len(models)} models to database.")
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error saving models to database: {e}")
+            raise e
 # Example usage to ensure tables exist
 if __name__ == "__main__":
     init_db()
