@@ -214,27 +214,24 @@ def save_hand_result(game_id, hand_num, player_stats):
             print(f"Error saving hand result: {e}")
             raise e
 
-def get_aggregated_stats(param,ascending):
+
+def get_aggregated_stats(param, ascending):
     """
     Gets model stats from the start (whole history) as a flat list
-    using pandas and SQLAlchemy engine.
+    using pandas and SQLAlchemy engine, enriched with ModelInfo.
     """
     with app.app_context():
         try:
-            # Use SQLAlchemy engine for pandas connection
-            query = db.session.query(HandResult)
+            query_results = db.session.query(HandResult)
+            df_results = pd.read_sql(query_results.statement, db.session.connection())
 
-            # 2. Use the live session connection with pd.read_sql
-            df = pd.read_sql(query.statement, db.session.connection())
-
-            if df.empty:
+            if df_results.empty:
                 return []
 
-            if df.empty:
-                return []
+            query_info = db.session.query(ModelInfo)
+            df_info = pd.read_sql(query_info.statement, db.session.connection())
 
-            # Group by model
-            model_stats = df.groupby('model_id').agg({
+            model_stats = df_results.groupby('model_id').agg({
                 'hand_number': 'count',
                 'net_change': 'sum',
                 'is_winner': 'sum'
@@ -244,18 +241,31 @@ def get_aggregated_stats(param,ascending):
                 'is_winner': 'hands_won'
             })
 
-            # Calculations
             model_stats['win_rate'] = (model_stats['hands_won'] / model_stats['hands_played']).round(2)
             model_stats['avg_profit_per_hand'] = (model_stats['total_profit'] / model_stats['hands_played']).round(2)
 
-            # Formatting results (Flattening structure)
+            # Reset index to turn 'model_id' back into a regular column for merging
             model_stats = model_stats.reset_index()
-            model_stats = model_stats.rename(columns={'model_id': 'name'})
-            print(param)
-            print(ascending)
+
+            # Merge: Use 'left' join to ensure we keep stats for models
+            # even if they are missing from the models_info table.
+            if not df_info.empty:
+                model_stats = pd.merge(model_stats, df_info, on='model_id', how='left')
+
+            # 'param' can now be 'parameters', 'context', 'win_rate', 'total_profit', etc.
             if param and param in model_stats.columns:
                 model_stats = model_stats.sort_values(by=param, ascending=ascending)
-            # Return list of dicts (flat JSON array)
+
+            # Fill NaN values for models missing from info table (avoids JSON serialization errors)
+            model_stats = model_stats.fillna({
+                'parameters': 0,
+                'context': 0,
+                'input_price': 0.0,
+                'output_price': 0.0,
+                'name': 'Unknown Model'  # Fallback name
+            })
+
+            # Return list of dicts
             return model_stats.to_dict('records')
 
         except Exception as e:
@@ -263,6 +273,5 @@ def get_aggregated_stats(param,ascending):
             return []
 
 
-# Example usage to ensure tables exist
 if __name__ == "__main__":
     init_db()
