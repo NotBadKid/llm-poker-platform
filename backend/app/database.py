@@ -252,6 +252,7 @@ def get_aggregated_stats(param, ascending):
             if not df_info.empty:
                 model_stats = pd.merge(model_stats, df_info, on='model_id', how='left')
 
+            model_stats = model_stats.drop(columns=['id'], errors='ignore')
             # 'param' can now be 'parameters', 'context', 'win_rate', 'total_profit', etc.
             if param and param in model_stats.columns:
                 model_stats = model_stats.sort_values(by=param, ascending=ascending)
