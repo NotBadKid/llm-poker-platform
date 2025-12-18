@@ -5,7 +5,7 @@ from math import inf
 from pokerkit import Automation, Mode, NoLimitTexasHoldem
 from pokerkit.state import State
 
-from .game_data_validator import verify_if_scenario_matches_default, map_game_config_to_scenario
+from .game_data_validator import verify_if_scenario_matches_default, map_game_config_to_scenario,check_if_llm_models_are_all_different_players
 import app.llm_manager as llm_manager
 import app.state_broadcaster as broadcaster
 import app.database as db
@@ -58,9 +58,11 @@ def start_game_session(game_config: dict, game_id: str):
     """
     game_id = str(uuid.uuid4())
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
+
     is_data_valid_with_default_scenario = verify_if_scenario_matches_default(
         map_game_config_to_scenario(game_config)
-    )
+    ) is True and check_if_llm_models_are_all_different_players(game_config['players'])
+    print(f"[Poker Engine Debug] is_data_valid_with_default_scenario: {is_data_valid_with_default_scenario}")
     controller = register_controller(game_id)
     try:
         if is_data_valid_with_default_scenario is True:
@@ -70,7 +72,7 @@ def start_game_session(game_config: dict, game_id: str):
         # --- Game Setup ---
         player_map = {i: player for i, player in enumerate(game_config['players'])}
         total_players_count = len(player_map)
-
+        structured_output = game_config.get('structured_output', False)
         current_stacks = [game_config.get('initial_stack', 10000)] * total_players_count
         blinds = (game_config.get('small_blind', 10), game_config.get('big_blind', 20))
         big_blind = blinds[1]
@@ -167,12 +169,19 @@ def start_game_session(game_config: dict, game_id: str):
 
                 prompt_json = build_llm_prompt(state, local_actor_index, active_indices, player_map, game_story)
                 user_strategy = player_data.get('user_prompt')
-
-                action_response = llm_manager.get_llm_action(
-                    model_id=player_data['model_id'],
-                    prompt_json=prompt_json,
-                    user_prompt=user_strategy
-                )
+                action_response=None
+                if structured_output:
+                    action_response = llm_manager.get_llm_action(
+                        model_id=player_data['model_id'],
+                        prompt_json=prompt_json,
+                        user_prompt=user_strategy
+                    )
+                else:
+                    action_response = llm_manager.get_llm_action_text(
+                        model_id=player_data['model_id'],
+                        prompt_json=prompt_json,
+                        user_prompt=user_strategy
+                    )
 
                 action_str, amount_validated, message = validate_and_execute_action(state, action_response)
 

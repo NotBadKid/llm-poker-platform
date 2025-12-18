@@ -7,7 +7,7 @@ import sys
 from app.poker.poker_engine import start_game_session
 # These are imported by poker_engine, so we need to be able to reference them.
 # We will mock the behavior of these functions in the tests.
-from app.poker.game_data_validator import map_game_config_to_scenario, verify_if_scenario_matches_default, ScenarioSchema
+from app.poker.game_data_validator import map_game_config_to_scenario, verify_if_scenario_matches_default, ScenarioSchema, check_if_llm_models_are_all_different_players
 
 # --- Default values for creating test configurations ---
 DEFAULT_SB = 100
@@ -18,11 +18,8 @@ class TestGameSessionValidation(unittest.TestCase):
 
     def setUp(self):
         """Set up test configurations before each test."""
-        # Valid player: Default temperature (1) and Default prompt ("")
-        self.valid_player = {
-            'name': 'PlayerA', 
-            'model_id': 'mock_model', 
-            'temperature': 1, 
+        self.valid_player_template = {
+            'temperature': 1,
             'user_prompt': ""
         }
 
@@ -30,7 +27,12 @@ class TestGameSessionValidation(unittest.TestCase):
         self.valid_config = {
             'small_blind': DEFAULT_SB,
             'big_blind': DEFAULT_BB,
-            'players': [self.valid_player] * 4,  # 4 players
+            'players': [
+                {**self.valid_player_template, 'name': 'PlayerA', 'model_id': 'model_a'},
+                {**self.valid_player_template, 'name': 'PlayerB', 'model_id': 'model_b'},
+                {**self.valid_player_template, 'name': 'PlayerC', 'model_id': 'model_c'},
+                {**self.valid_player_template, 'name': 'PlayerD', 'model_id': 'model_d'},
+            ],
             'initial_stack': DEFAULT_STACK,
             'number_of_hands': 1
         }
@@ -39,7 +41,12 @@ class TestGameSessionValidation(unittest.TestCase):
         self.invalid_config = {
             'small_blind': 50,  # Invalid SB
             'big_blind': 200,
-            'players': [self.valid_player] * 4,
+            'players': [
+                {**self.valid_player_template, 'name': 'PlayerA', 'model_id': 'model_a'},
+                {**self.valid_player_template, 'name': 'PlayerB', 'model_id': 'model_b'},
+                {**self.valid_player_template, 'name': 'PlayerC', 'model_id': 'model_c'},
+                {**self.valid_player_template, 'name': 'PlayerD', 'model_id': 'model_d'},
+            ],
             'initial_stack': 10000,
             'number_of_hands': 1
         }
@@ -78,6 +85,7 @@ class TestGameSessionValidation(unittest.TestCase):
             game_config=self.valid_config,
             verify_return_value=True
         )
+        print(f"Captured output:\n{print_output}")
 
         # Assert that the core database functions were called
         mock_db.init_db.assert_called_once()
@@ -114,7 +122,7 @@ class TestGameSessionValidation(unittest.TestCase):
         mock_differences = {'prompts': {'Expected': 'Default', 'Actual': 'Custom'}}
         
         # Configuration with custom prompt
-        custom_prompt_player = self.valid_player.copy()
+        custom_prompt_player = self.valid_player_template.copy()
         custom_prompt_player['user_prompt'] = "Always All-in"
         
         custom_prompt_config = self.valid_config.copy()
@@ -141,7 +149,7 @@ class TestGameSessionValidation(unittest.TestCase):
         mock_differences = {'temperature': {'Expected': 1, 'Actual': 0.7}}
         
         # Configuration with custom temperature
-        custom_temp_player = self.valid_player.copy()
+        custom_temp_player = self.valid_player_template.copy()
         custom_temp_player['temperature'] = 0.7
         
         custom_temp_config = self.valid_config.copy()
@@ -159,6 +167,57 @@ class TestGameSessionValidation(unittest.TestCase):
         mock_db.save_hand_result.assert_not_called()
 
         print("\nTest 4 Passed: Custom temperature correctly skipped all database operations.")
+
+    def test_check_if_llm_models_are_all_different_model_ids_unique(self):
+        """
+        Test case for check_if_llm_models_are_all_different_players with unique model_ids.
+        """
+        llms = [
+            {'name': 'Player1', 'model_id': 'model_a'},
+            {'name': 'Player2', 'model_id': 'model_b'},
+            {'name': 'Player3', 'model_id': 'model_c'},
+        ]
+        self.assertTrue(check_if_llm_models_are_all_different_players(llms))
+
+    def test_check_if_llm_models_are_all_different_model_ids_duplicate(self):
+        """
+        Test case for check_if_llm_models_are_all_different_players with duplicate model_ids.
+        """
+        llms = [
+            {'name': 'Player1', 'model_id': 'model_a'},
+            {'name': 'Player2', 'model_id': 'model_b'},
+            {'name': 'Player3', 'model_id': 'model_a'}, # Duplicate model_id
+        ]
+        self.assertFalse(check_if_llm_models_are_all_different_players(llms))
+
+    def test_check_if_llm_models_are_all_different_model_ids_empty_list(self):
+        """
+        Test case for check_if_llm_models_are_all_different_players with an empty list.
+        """
+        llms = []
+        self.assertTrue(check_if_llm_models_are_all_different_players(llms))
+
+    def test_check_if_llm_models_are_all_different_model_ids_missing_model_id_key(self):
+        """
+        Test case for check_if_llm_models_are_all_different_players with missing 'model_id' key.
+        """
+        llms = [
+            {'name': 'Player1', 'model_id': 'model_a'},
+            {'name': 'Player2'}, # Missing 'model_id' key
+            {'name': 'Player3', 'model_id': 'model_c'},
+        ]
+        self.assertTrue(check_if_llm_models_are_all_different_players(llms))
+
+    def test_check_if_llm_models_are_all_different_model_ids_missing_model_id_key_duplicate(self):
+        """
+        Test case for check_if_llm_models_are_all_different_players with missing 'model_id' key and duplicates.
+        """
+        llms = [
+            {'name': 'Player1', 'model_id': 'model_a'},
+            {'name': 'Player2'}, # Missing 'model_id' key
+            {'name': 'Player3', 'model_id': 'model_a'}, # Duplicate 'model_a'
+        ]
+        self.assertFalse(check_if_llm_models_are_all_different_players(llms))
 
 if __name__ == '__main__':
     unittest.main()
