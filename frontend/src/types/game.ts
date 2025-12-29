@@ -53,8 +53,20 @@ export interface BotPlayerConfigUI extends BotPlayerConfig {
     useCustomPrompt: boolean,
 }
 
-export interface PlayerStats {
-    name: string;
+export interface Model {
+    model_id: string,
+    name: string,
+    parameters: number | null,
+    context: number,
+    input_price: number,
+    output_price: number,
+    structured_output: boolean,
+    description: string,
+    open_router_url: string,
+
+}
+
+export interface PlayerStats extends Model{
     hands_played: number;
     hands_won: number;
     win_rate: number;
