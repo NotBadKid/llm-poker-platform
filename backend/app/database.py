@@ -214,7 +214,7 @@ def save_hand_result(game_id, hand_num, player_stats):
             print(f"Error saving hand result: {e}")
             raise e
 
-def get_aggregated_stats():
+def get_aggregated_stats(param='avg_profit_per_hand', ascending=False):
     """
     Gets model stats from the start (whole history) as a flat list
     using pandas and SQLAlchemy engine.
