@@ -60,7 +60,7 @@ export interface Model {
     context: number,
     input_price: number,
     output_price: number,
-    structured_output: boolean,
+    structured_outputs: boolean,
     description: string,
     open_router_url: string,
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import CustomSelect from "../ui/CustomSelect.tsx";
-import type { BotPlayerConfig } from "../../types/game.ts";
+import type {BotPlayerConfig, Model} from "../../types/game.ts";
+import {formatModelName} from "../../utils/formatModelName.ts";
 
 export interface BotUIConfig extends BotPlayerConfig {
     id: number;
@@ -10,7 +11,7 @@ export interface BotUIConfig extends BotPlayerConfig {
 interface Props {
     index: number;
     bot: BotUIConfig;
-    availableModels: { id: string; name: string }[];
+    availableModels: Model[];
     onUpdate: (field: keyof BotUIConfig, value: string | number | boolean) => void;
 }
 
@@ -42,8 +43,8 @@ const PlayerConfigCard = ({ index, bot, availableModels, onUpdate }: Props) => {
                         value={bot.model_id}
                         onChange={(val: string) => onUpdate('model_id', val)}
                         options={availableModels.map(m => ({
-                            value: m.id,
-                            label: m.name
+                            value: m.model_id,
+                            label: formatModelName(m.model_id)
                         }))}
                         className="mt-1"
                     />
