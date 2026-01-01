@@ -9,6 +9,7 @@ import PlayerConfigCard from "../components/ui/PlayerConfigCard.tsx";
 import {useGameStore} from "../store/useGameStore.ts";
 import ConnectedButton from "../components/ui/ConnectedButton.tsx";
 import Tooltip from "../components/ui/Tooltip.tsx";
+import {formatModelName} from "../utils/formatModelName.ts";
 
 const CreateTable = () => {
     const navigate = useNavigate();
@@ -26,7 +27,7 @@ const CreateTable = () => {
     const [bots, setBots] = useState<BotPlayerConfigUI[]>([
         {
             id: 1,
-            name: "Bot 1",
+            name: formatModelName(AVAILABLE_MODELS[0].id),
             model_id: AVAILABLE_MODELS[0].id,
             temperature: 1,
             user_prompt: "",
@@ -34,7 +35,7 @@ const CreateTable = () => {
         },
         {
             id: 2,
-            name: "Bot 2",
+            name: formatModelName(AVAILABLE_MODELS[1].id),
             model_id: AVAILABLE_MODELS[1].id,
             temperature: 1,
             user_prompt: "",
@@ -42,7 +43,7 @@ const CreateTable = () => {
         },
         {
             id: 3,
-            name: "Bot 3",
+            name: formatModelName(AVAILABLE_MODELS[2].id),
             model_id: AVAILABLE_MODELS[2].id,
             temperature: 1,
             user_prompt: "",
@@ -50,7 +51,7 @@ const CreateTable = () => {
         },
         {
             id: 4,
-            name: "Bot 4",
+            name: formatModelName(AVAILABLE_MODELS[3].id),
             model_id: AVAILABLE_MODELS[3].id,
             temperature: 1,
             user_prompt: "",
@@ -79,10 +80,17 @@ const CreateTable = () => {
     }, [playerCount]);
 
     const updateBot = (index: number, field: keyof BotPlayerConfigUI, value: string | number | boolean) => {
-        const newBots = [...bots];
-        // @ts-ignore
-        newBots[index][field] = value;
-        setBots(newBots);
+        setBots(prevBots => prevBots.map((bot, i) => {
+            if (i !== index) return bot;
+
+            const updatedBot = { ...bot, [field]: value };
+
+            if (field === 'model_id' && typeof value === 'string') {
+                updatedBot.name = formatModelName(value);
+            }
+
+            return updatedBot;
+        }));
     };
 
     const handleStart = async () => {
