@@ -144,7 +144,7 @@ const CreateTable = () => {
             <h1 className="text-4xl font-bold absolute top-6 bg-gradient-to-r py-1 from-blue-500 via-violet-600 to-green-300 text-transparent bg-clip-text">Table
                 Configuration</h1>
 
-            <div className="max-w-4xl w-full space-y-8 pb-20 mt-18">
+            <div className="max-w-5xl w-full space-y-8 pb-20 mt-18">
                 <section>
                     <h2 className="mb-4">1. Game Rules</h2>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
