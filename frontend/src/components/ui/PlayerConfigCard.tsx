@@ -1,6 +1,8 @@
-import { useState } from "react";
-import CustomSelect from "../ui/CustomSelect.tsx";
-import type { BotPlayerConfig } from "../../types/game.ts";
+import {useState} from "react";
+import type {BotPlayerConfig, Model} from "../../types/game.ts";
+import Modal from "./Modal.tsx";
+import {LuSearch} from "react-icons/lu";
+import {ExternalLink} from "lucide-react";
 
 export interface BotUIConfig extends BotPlayerConfig {
     id: number;
@@ -10,15 +12,33 @@ export interface BotUIConfig extends BotPlayerConfig {
 interface Props {
     index: number;
     bot: BotUIConfig;
-    availableModels: { id: string; name: string }[];
+    availableModels: Model[];
     onUpdate: (field: keyof BotUIConfig, value: string | number | boolean) => void;
 }
 
-const PlayerConfigCard = ({ index, bot, availableModels, onUpdate }: Props) => {
+const PlayerConfigCard = ({index, bot, availableModels, onUpdate}: Props) => {
     const [isPromptHidden, setIsPromptHidden] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState<string>("")
+
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => {
+        setIsModalOpen(false)
+        setSearchQuery("")
+    };
+    const filteredModels: Model[] = availableModels.filter((model) => {
+        const query = searchQuery.toLowerCase();
+
+        return (
+            model.name.toLowerCase().includes(query) ||
+            model.model_id.toLowerCase().includes(query) ||
+            model.description.toLowerCase().includes(query)
+        )
+    })
 
     return (
-        <div className="bg-slate-900 p-5 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-6 transition-all hover:border-purple-500">
+        <div
+            className="bg-slate-900 p-5 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-6 transition-all hover:border-purple-500">
             <div className="w-full md:w-1/3 flex flex-col gap-4">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                     <span className="bg-slate-800 text-purple-500 px-2 py-1 rounded text-sm">#{index + 1}</span>
@@ -38,15 +58,108 @@ const PlayerConfigCard = ({ index, bot, availableModels, onUpdate }: Props) => {
 
                 <div>
                     <label className="text-xs text-gray-500 uppercase font-bold">Model</label>
-                    <CustomSelect
-                        value={bot.model_id}
-                        onChange={(val: string) => onUpdate('model_id', val)}
-                        options={availableModels.map(m => ({
-                            value: m.id,
-                            label: m.name
-                        }))}
-                        className="mt-1"
-                    />
+                    <button
+                        onClick={openModal}
+                        className="w-full p-3 rounded-lg cursor-pointer bg-slate-900 border border-slate-600 text-left overflow-hidden flex items-center justify-between outline-none hover:border-purple-500"
+                    >
+                        <span className="whitespace-nowrap overflow-x-hidden">
+                            {bot.name}
+                        </span>
+
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+
+                    </button>
+
+                    <Modal
+                        isOpen={isModalOpen}
+                        onClose={closeModal}
+                        title="Select LLM Model"
+                    >
+                        <div className='border-b border-slate-600 p-6'>
+                            <div className='relative'>
+                                <LuSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                                <input
+                                    className="w-full pl-10 border bg-slate-700 border-slate-600 rounded-lg p-2 focus:border-purple-500 outline-none transition placeholder:text-slate-400 hover:border-slate-500"
+                                    type="text"
+                                    placeholder="Search models by name, ID, or description..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className='h-full overflow-y-auto p-8 flex flex-col gap-6 custom-scrollbar'>
+                            {
+                                filteredModels.map((model: Model) => (
+                                    <div
+                                        key={model.model_id}
+                                        className={`bg-slate-700 rounded-lg p-4 cursor-pointer hover:bg-slate-600 transition-colors border hover:border-purple-500 ${bot.model_id === model.model_id ? "border-purple-500" : "border-slate-600"}`}
+                                        onClick={() => {
+                                            onUpdate('model_id', model.model_id)
+                                            closeModal()
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="truncate text-lg">{model.name}</h3>
+                                            <a
+                                                href={model.open_router_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="text-purple-400 hover:text-purple-300 flex-shrink-0"
+                                            >
+                                                <ExternalLink className="w-5 h-5"/>
+                                            </a>
+                                        </div>
+
+                                        <p className="text-slate-400 mb-3 font-mono">
+                                            {model.model_id}
+                                        </p>
+
+                                        <p className="text-sm text-slate-300 mb-6 line-clamp-3">
+                                            {model.description}
+                                        </p>
+
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                            <div>
+                                                <div className="text-slate-400">
+                                                    Parameters
+                                                </div>
+                                                <div className="text-base">
+                                                    {model.parameters ? `${model.parameters / 1000000000}B` : "Unknown"}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-slate-400">
+                                                    Context Window
+                                                </div>
+                                                <div className="text-base text-white">
+                                                    {(model.context / 1000).toFixed(0)}k tokens
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-slate-400">
+                                                    Input Price
+                                                </div>
+                                                <div className="text-base text-purple-400">
+                                                    ${model.input_price.toFixed(2)}/1M
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-slate-400">
+                                                    Output Price
+                                                </div>
+                                                <div className="text-base text-purple-400">
+                                                    ${model.output_price.toFixed(2)}/1M
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </Modal>
                 </div>
 
                 <div>

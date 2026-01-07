@@ -51,7 +51,7 @@ body {
     }
 
     .custom-scrollbar {
-        scrollbar-color: theme('colors.purple.900') theme('colors.slate.900');
+        scrollbar-color: theme('colors.purple.600') theme('colors.slate.800');
     }
 
 }

@@ -1,8 +1,8 @@
 import {useState, useEffect} from "react";
 import {useNavigate} from "react-router-dom";
 import {startGame} from "../services/gameApi.ts";
-import type {BotPlayerConfig, BotPlayerConfigUI, GameStartPayload} from "../types/game.ts";
-import {AVAILABLE_MODELS} from "../const";
+import type {BotPlayerConfig, BotPlayerConfigUI, GameStartPayload, Model} from "../types/game.ts";
+import {DEFAULT_AVAILABLE_MODELS} from "../const";
 import CustomSelect from "../components/ui/CustomSelect.tsx";
 import GameInput from "../components/ui/GameInput.tsx";
 import PlayerConfigCard from "../components/ui/PlayerConfigCard.tsx";
@@ -10,6 +10,7 @@ import {useGameStore} from "../store/useGameStore.ts";
 import ConnectedButton from "../components/ui/ConnectedButton.tsx";
 import Tooltip from "../components/ui/Tooltip.tsx";
 import {formatModelName} from "../utils/formatModelName.ts";
+import {getModels} from "../services/modelsApi.ts";
 
 const CreateTable = () => {
     const navigate = useNavigate();
@@ -21,43 +22,58 @@ const CreateTable = () => {
     const [playerCount, setPlayerCount] = useState<number>(4);
     const [numberOfHands, setNumberOfHands] = useState<number>(7);
     const [selectedFormat, setSelectedFormat] = useState<string>("Any (Text)")
+    const [modelsList, setModelsList] = useState<Model[]>(DEFAULT_AVAILABLE_MODELS);
 
     const setGameId = useGameStore((state) => state.setGameId);
 
     const [bots, setBots] = useState<BotPlayerConfigUI[]>([
         {
             id: 1,
-            name: formatModelName(AVAILABLE_MODELS[0].id),
-            model_id: AVAILABLE_MODELS[0].id,
+            name: formatModelName(modelsList[0].model_id),
+            model_id: modelsList[0].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
         },
         {
             id: 2,
-            name: formatModelName(AVAILABLE_MODELS[1].id),
-            model_id: AVAILABLE_MODELS[1].id,
+            name: formatModelName(modelsList[1].model_id),
+            model_id: modelsList[1].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
         },
         {
             id: 3,
-            name: formatModelName(AVAILABLE_MODELS[2].id),
-            model_id: AVAILABLE_MODELS[2].id,
+            name: formatModelName(modelsList[2].model_id),
+            model_id: modelsList[2].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
         },
         {
             id: 4,
-            name: formatModelName(AVAILABLE_MODELS[3].id),
-            model_id: AVAILABLE_MODELS[3].id,
+            name: formatModelName(modelsList[3].model_id),
+            model_id: modelsList[3].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
         },
     ]);
+
+    useEffect(() => {
+        const fetchModels = async () => {
+            setIsLoading(true);
+
+            const response: Model[] = await getModels(selectedFormat === "JSON")
+
+            if (response) {
+                setModelsList(response);
+            }
+            setIsLoading(false);
+        }
+        fetchModels();
+    }, [selectedFormat])
 
     useEffect(() => {
         setBots((prevBots) => {
@@ -67,7 +83,7 @@ const CreateTable = () => {
                     {
                         id: playerCount,
                         name: `Bot ${playerCount}`,
-                        model_id: AVAILABLE_MODELS[0].id,
+                        model_id: modelsList[0].model_id,
                         temperature: 1,
                         user_prompt: "",
                         useCustomPrompt: false,
@@ -128,7 +144,7 @@ const CreateTable = () => {
             <h1 className="text-4xl font-bold absolute top-6 bg-gradient-to-r py-1 from-blue-500 via-violet-600 to-green-300 text-transparent bg-clip-text">Table
                 Configuration</h1>
 
-            <div className="max-w-4xl w-full space-y-8 pb-20 mt-18">
+            <div className="max-w-5xl w-full space-y-8 pb-20 mt-18">
                 <section>
                     <h2 className="mb-4">1. Game Rules</h2>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -211,7 +227,7 @@ const CreateTable = () => {
                                 key={bot.id}
                                 index={index}
                                 bot={bot}
-                                availableModels={AVAILABLE_MODELS}
+                                availableModels={modelsList}
                                 onUpdate={(field, value) => updateBot(index, field, value)}
                             />
                         ))}
