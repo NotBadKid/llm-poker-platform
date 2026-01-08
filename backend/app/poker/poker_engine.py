@@ -56,7 +56,7 @@ def start_game_session(game_config: dict, game_id: str):
     Main function called by /game/start in a separate thread.
     Runs and manages the full poker game session.
     """
-    game_id = str(uuid.uuid4())
+
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
 
     is_data_valid_with_default_scenario = verify_if_scenario_matches_default(
@@ -157,7 +157,6 @@ def start_game_session(game_config: dict, game_id: str):
                 if state.actor_index is None:
                     time.sleep(0.1)
                     continue
-
                 print(f"[Poker Engine] Waiting for controller permit...")
                 controller.wait_for_turn()
 
@@ -220,7 +219,7 @@ def start_game_session(game_config: dict, game_id: str):
                     state, player_map, active_indices, chat_log, last_event,
                     total_players_count, current_stacks, initial_hole_cards
                 )
-                broadcaster.broadcast_game_state(frontend_state)
+                broadcaster.broadcast_game_state(frontend_state,game_id)
                 time.sleep(0.5)
 
             # --- 10. End of Hand ---
@@ -253,7 +252,7 @@ def start_game_session(game_config: dict, game_id: str):
                 state, player_map, active_indices, chat_log, last_event,
                 total_players_count, current_stacks, initial_hole_cards, hand_over=True
             )
-            broadcaster.broadcast_game_state(final_state)
+            broadcaster.broadcast_game_state(final_state,game_id)
 
             players_with_chips_check = sum(1 for stack in current_stacks if stack > 0)
             if players_with_chips_check > 1 and (max_hands_to_play is None or hands_played < max_hands_to_play):

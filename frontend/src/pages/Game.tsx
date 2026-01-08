@@ -7,15 +7,16 @@ import PlayerCard from "../components/ui/PlayerCard.tsx";
 import GameControls from "../components/ui/GameControls.tsx";
 
 const Game = () => {
-    useGameSocket();
-
     const {
         pot,
         communityCards,
         players,
         activePlayer,
-        chatLog
+        chatLog,
+        gameId
     } = useGameStore((state) => state);
+
+    useGameSocket(gameId);
 
     const playerPositions: string[] = [
         'bottom-32 left-18',
