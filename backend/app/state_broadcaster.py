@@ -1,7 +1,7 @@
 from app import socketio
 
 
-def broadcast_game_state(state_json: dict):
+def broadcast_game_state(state_json: dict,game_id):
     """
     Sends game state to all connected clients (in our case the frontend) through websockets.
 
@@ -9,7 +9,7 @@ def broadcast_game_state(state_json: dict):
     """
 
     # frontend should listen for this event name
-    event_name = "game_update"
+    event_name = "game_update/"+game_id
 
     print(f"[Broadcaster] Broadcasting the event: '{event_name}'...")
 
