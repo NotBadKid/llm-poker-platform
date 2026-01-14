@@ -63,7 +63,10 @@ def start_game_session(game_config: dict, game_id: str):
         map_game_config_to_scenario(game_config)
     ) is True and check_if_llm_models_are_all_different_players(game_config['players'])
     print(f"[Poker Engine Debug] is_data_valid_with_default_scenario: {is_data_valid_with_default_scenario}")
+
     controller = register_controller(game_id)
+    game_end_reason = "unknown"
+
     try:
         if is_data_valid_with_default_scenario is True:
             db.init_db()
@@ -100,11 +103,21 @@ def start_game_session(game_config: dict, game_id: str):
 
         # --- 2. Main Game Loop ---
         while True:
+            if controller.is_aborted_flag:
+                game_end_reason = "user_abort"
+                print(f"[Poker Engine] Game aborted by user.")
+                break
+
             if max_hands_to_play is not None and hands_played >= max_hands_to_play:
                 print(f"[Poker Engine] Game over: Reached hand limit of {max_hands_to_play}.")
                 break
 
             controller.wait_for_turn()
+
+            if controller.is_aborted_flag:
+                game_end_reason = "user_abort"
+                print(f"[Poker Engine] Game aborted by user (after pause).")
+                break
 
             active_indices = [i for i, stack in enumerate(current_stacks) if stack > 0]
 
@@ -154,11 +167,17 @@ def start_game_session(game_config: dict, game_id: str):
                         f"[Poker Engine] *** BOARD UPDATED *** New: {[str(c) for c in new_cards]} | Full: {[str(c) for c in state.board_cards]}")
                     last_board_count = len(state.board_cards)
 
+                if controller.is_aborted_flag:
+                    break
+
                 if state.actor_index is None:
                     time.sleep(0.1)
                     continue
                 print(f"[Poker Engine] Waiting for controller permit...")
                 controller.wait_for_turn()
+
+                if controller.is_aborted_flag:
+                    break
 
                 local_actor_index = state.actor_index
                 global_player_index = active_indices[local_actor_index]
@@ -168,7 +187,8 @@ def start_game_session(game_config: dict, game_id: str):
 
                 prompt_json = build_llm_prompt(state, local_actor_index, active_indices, player_map, game_story)
                 user_strategy = player_data.get('user_prompt')
-                action_response=None
+
+                action_response = None
                 if structured_output:
                     action_response = llm_manager.get_llm_action(
                         model_id=player_data['model_id'],
@@ -183,7 +203,6 @@ def start_game_session(game_config: dict, game_id: str):
                     )
 
                 action_str, amount_validated, message = validate_and_execute_action(state, action_response)
-
 
                 print(f"[Poker Engine] LLM ({player_data['name']}) chose: {action_str}, Value: {amount_validated}")
                 print("Default scenario: ", is_data_valid_with_default_scenario)
@@ -219,8 +238,12 @@ def start_game_session(game_config: dict, game_id: str):
                     state, player_map, active_indices, chat_log, last_event,
                     total_players_count, current_stacks, initial_hole_cards
                 )
-                broadcaster.broadcast_game_state(frontend_state,game_id)
+                broadcaster.broadcast_game_state(frontend_state, game_id)
                 time.sleep(0.5)
+
+            if controller.is_aborted_flag:
+                game_end_reason = "user_abort"
+                break
 
             # --- 10. End of Hand ---
             print("[Poker Engine] Hand finished. Settling pot.")
@@ -252,18 +275,34 @@ def start_game_session(game_config: dict, game_id: str):
                 state, player_map, active_indices, chat_log, last_event,
                 total_players_count, current_stacks, initial_hole_cards, hand_over=True
             )
-            broadcaster.broadcast_game_state(final_state,game_id)
+            broadcaster.broadcast_game_state(final_state, game_id)
 
             players_with_chips_check = sum(1 for stack in current_stacks if stack > 0)
             if players_with_chips_check > 1 and (max_hands_to_play is None or hands_played < max_hands_to_play):
                 print(f"[Poker Engine] Next hand in 5 seconds...")
                 time.sleep(5)
+
     except Exception as e:
         print(f"[Poker Engine] Error in game {game_id}: {e}")
-    finally:
-        remove_controller(game_id)
-        print(f"[Poker Engine] Game {game_id} finished. Controller removed.")
+        import traceback
+        traceback.print_exc()
 
+    finally:
+        print(f"[Poker Engine] Finalizing game. Reason: {game_end_reason}")
+
+        final_summary = build_game_over_summary(
+            game_id=game_id,
+            player_map=player_map,
+            current_stacks=current_stacks,
+            initial_stack=game_config.get('initial_stack', 10000),
+            hands_played=hands_played,
+            reason=game_end_reason
+        )
+
+        broadcaster.broadcast_game_over(final_summary, game_id)
+
+        remove_controller(game_id)
+        print(f"[Poker Engine] Game {game_id} finished. Summary sent. Controller removed.")
 
 
 def build_llm_prompt(state: State, local_player_index: int, active_indices: list, player_map: dict,
@@ -450,3 +489,30 @@ def safe_default_action(state: State, message: str) -> tuple:
         return "fold", 0, message
     else:
         return "error", 0, "No safe action"
+
+
+def build_game_over_summary(game_id, player_map, current_stacks, initial_stack, hands_played, reason):
+    players_result = []
+
+    for i, p_data in player_map.items():
+        stack = current_stacks[i]
+        profit = stack - initial_stack
+        players_result.append({
+            "name": p_data['name'],
+            "model_id": p_data['model_id'],
+            "final_stack": stack,
+            "net_profit": profit,
+            "status": "active" if stack > 0 else "bust"
+        })
+
+    players_result.sort(key=lambda x: x['final_stack'], reverse=True)
+    winner_name = players_result[0]['name'] if players_result else "No one"
+
+    return {
+        "type": "GAME_OVER",
+        "game_id": game_id,
+        "reason": reason,  # "user_abort", "hand_limit", "elimination"
+        "total_hands": hands_played,
+        "winner": winner_name,
+        "ranking": players_result
+    }
