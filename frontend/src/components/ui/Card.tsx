@@ -9,7 +9,7 @@ const Card = ({card}: CardProps) => {
 
     return (
         <img
-            className="w-16"
+            className="w-14 md:w-16 rounded"
             src={imageUrl}
             alt={card || "Card"}
         />
