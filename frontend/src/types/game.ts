@@ -12,6 +12,7 @@ export interface Player {
     chipCount: number,
     currentBet: number,
     holeCards: [CardId, CardId],
+    status: "playing" | "folded" | "eliminated"
 }
 
 export interface LastEvent {

@@ -9,11 +9,16 @@ interface PlayerProps {
 
 const PlayerCard = ({ player, isActive }: PlayerProps) => {
     const activeClass = isActive ? 'border-[#66b185] shadow-[0_0_2rem_rgba(0,255,0,0.3)]' : 'border-slate-600';
+    const isPlaying = player.status === "playing"
 
     return (
-        <div id="player-container" className={activeClass}>
+        <div id="player-container" className={`${activeClass} ${!isPlaying && 'opacity-50'}`}>
             <div className="flex items-center gap-4">
-                <div className={`hidden md:block p-2 border rounded-full text-4xl bg-gradient-to-tl from-emerald-600 to-purple-600 border-white ${isActive && 'shadow-[0_0_1rem_rgba(0,255,0,0.5)]'}`}>
+                <div
+                    className={`hidden md:block p-2 border rounded-full text-4xl border-white
+                    ${isPlaying && 'bg-gradient-to-tl from-emerald-600 to-purple-600'} 
+                    ${isActive && 'shadow-[0_0_1rem_rgba(0,255,0,0.5)]'}`}
+                >
                     <LuBot/>
                 </div>
                 <div className="flex flex-col min-w-0">
