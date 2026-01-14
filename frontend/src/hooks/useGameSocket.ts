@@ -1,13 +1,12 @@
-import { useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { useGameStore } from '../store/useGameStore';
+import {useEffect} from 'react';
+import {io} from 'socket.io-client';
+import {useGameStore} from '../store/useGameStore';
 import type {GameState} from '../types/game';
 
 const SERVER_URL = "http://localhost:5000";
 
-export const useGameSocket = () => {
+export const useGameSocket = (gameId: string | null) => {
     const setGameState = useGameStore((state) => state.setGameState);
-
     useEffect(() => {
         const socket = io(SERVER_URL, {
             transports: ['websocket'],
@@ -17,7 +16,7 @@ export const useGameSocket = () => {
             console.log('Connected:', socket.id);
         });
 
-        socket.on('game_update', (data: GameState) => {
+        socket.on(`game_update/${gameId}`, (data: GameState) => {
             console.log('update:\n', data);
             setGameState(data);
         });

@@ -5,16 +5,16 @@ import GameContainer from "../components/ui/GameContainer.tsx";
 import ChatContainer from "../components/ui/ChatContainer.tsx";
 
 const Game = () => {
-    useGameSocket();
-
     const {
         pot,
         communityCards,
         players,
         activePlayer,
-        chatLog
+        chatLog,
+        gameId,
     } = useGameStore((state) => state);
 
+    useGameSocket(gameId);
 
     return (
         <main className="text-white flex flex-col gap-12">
@@ -28,8 +28,6 @@ const Game = () => {
                 <GameContainer pot={pot} communityCards={communityCards} players={players} activePlayer={activePlayer}/>
                 <ChatContainer chatLogs={chatLog}/>
             </div>
-
-
         </main>
     );
 };
