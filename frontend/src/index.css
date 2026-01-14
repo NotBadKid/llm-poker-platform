@@ -7,7 +7,6 @@
 }
 
 body {
-    background: var(--color-primary);
     color: white;
 }
 
@@ -31,65 +30,54 @@ body {
     }
 
     /*Custom scrollbar*/
+
+    .custom-scrollbar {
+        --sb-track: theme('colors.slate.900');
+        --sb-thumb: theme('colors.purple.900');
+        --sb-thumb-hover: theme('colors.purple.500');
+
+        /* Firefox */
+        scrollbar-color: var(--sb-thumb) var(--sb-track);
+    }
+    .custom-scrollbar-emerald {
+        --sb-track: theme('colors.slate.900');
+        --sb-thumb: theme('colors.emerald.400');
+        /*--sb-thumb-hover: theme('colors.red.500');*/
+    }
+
     .custom-scrollbar::-webkit-scrollbar {
         width: 14px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-track {
-        background: theme('colors.slate.900');
+        background: var(--sb-track);
         border-radius: 0 0.5rem 0.5rem 0;
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: theme('colors.purple.900');
+        background-color: var(--sb-thumb);
         border-radius: 100%;
-        border: 3px solid theme('colors.slate.900');
+        border: 3px solid var(--sb-track);
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: theme('colors.purple.500');
+        background-color: var(--sb-thumb-hover);
     }
-
-    .custom-scrollbar {
-        scrollbar-color: theme('colors.purple.600') theme('colors.slate.800');
-    }
-
 }
 
 @layer components {
-
-    header {
-        @apply w-screen fixed top-0 left-0 z-50 min-h-[10vh] bg-secondary flex items-center pl-[5%];
-
-        h1 {
-            @apply text-3xl;
-        }
-    }
-
-    #sidebar {
-        @apply absolute top-0 right-0 z-100 w-[200px] md:w-[300px] h-full bg-secondary text-center pt-6;
-
-        h2 {
-            @apply text-2xl;
-        }
-    }
-
     #player-container {
-        @apply bg-tertiary rounded-xl px-4 pb-8 pt-3 border;
+        @apply rounded-xl px-4 pb-6 pt-3 border bg-linear-to-br from-slate-800 to-slate-900 w-40 md:w-68;
 
         h3 {
-            @apply text-2xl pb-3;
-        }
-
-        p {
-            @apply text-base
+            @apply text-xl truncate mb-1 font-semibold;
         }
 
         #current-bet-container {
-            @apply absolute -bottom-3 left-[calc(35%)] rounded-lg border;
+            @apply md:absolute md:-bottom-3 md:left-[calc(36%)] border rounded-xl text-center mt-4 -mb-3 md:mt-0 md:mb-0;
 
             p {
-                @apply text-lg bg-tertiary px-4;
+                @apply text-lg bg-slate-800 px-4 rounded-xl;
             }
         }
 
@@ -118,10 +106,10 @@ body {
     }
 
     #game-flow-controls-container {
-        @apply absolute top-1/6 z-[9999] left-1/2 -translate-x-1/2 text-center flex gap-4;
+        @apply text-center flex gap-4;
 
         button {
-            @apply border-2 border-white px-10 py-2 rounded-2xl text-xl shadow-lg cursor-pointer tracking-wide hover:scale-105
+            @apply border border-slate-700 bg-gradient-to-tl from-slate-800/50  to-slate-950/50 px-8 py-2 rounded-2xl text-xl shadow-lg cursor-pointer tracking-wide hover:scale-105
         }
     }
 
