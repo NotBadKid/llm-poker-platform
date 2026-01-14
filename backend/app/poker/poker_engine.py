@@ -58,6 +58,7 @@ def start_game_session(game_config: dict, game_id: str):
     """
 
     print(f"[Poker Engine] Starting game {game_id} with config: {game_config}")
+    make_player_names_unique(game_config['players'])
 
     is_data_valid_with_default_scenario = verify_if_scenario_matches_default(
         map_game_config_to_scenario(game_config)
@@ -450,3 +451,25 @@ def safe_default_action(state: State, message: str) -> tuple:
         return "fold", 0, message
     else:
         return "error", 0, "No safe action"
+
+
+from collections import Counter
+
+
+def make_player_names_unique(players_list: list):
+    """
+    Modifies the list of players in-place to ensure unique names. If duplicate names
+    are found, appends a number to them, e.g., "Gemini", "Gemini" -> "Gemini 1", "Gemini 2".
+    Unique names remain unchanged.
+    """
+    original_names = [p['name'] for p in players_list]
+    counts = Counter(original_names)
+
+    current_counters = {name: 0 for name in original_names}
+
+    for p in players_list:
+        name = p['name']
+        if counts[name] > 1:
+            current_counters[name] += 1
+            p['name'] = f"{name} {current_counters[name]}"
+
