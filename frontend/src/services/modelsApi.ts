@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000';
+const API_URL = '';
 
 export const getModels = async (structured_output: boolean) => {
     const response = await fetch(`${API_URL}/api/model?structured_flag=${structured_output}`)

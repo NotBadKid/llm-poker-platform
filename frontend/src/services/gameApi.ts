@@ -1,6 +1,6 @@
 import type {GameStartPayload} from "../types/game.ts";
 
-const API_URL = 'http://localhost:5000';
+const API_URL = '';
 
 
 export const startGame = async (gameConfig: GameStartPayload) => {
