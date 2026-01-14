@@ -8,7 +8,63 @@ import random
 MAX_RETRIES = 3
 INITIAL_BACKOFF = 2
 
-schema_prompt="You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. Do not include any other text, reasoning, or explanations outside of the JSON object. The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}. The message field is public table talk. Every opponent sees it. You may or may not use this to your advantage. Remember that other players also may bluff. In your game please follow that strategy:"
+
+FEW_SHOT_EXAMPLES_JSON = """
+Here are examples of how a professional player analyzes the game state and responds in JSON:
+
+Example 1 (Weak hand, facing aggression -> Fold):
+Input State Snippet: {"hole_cards": ["7h", "2d"], "legal_moves": ["fold", "call", "raise"], "bet_to_call": 50, "pot": 100}
+Response: {"action": "fold", "amount": 0, "message": "7-2 offsuit is trash. Folding."}
+
+Example 2 (Strong drawing hand -> Call):
+Input State Snippet: {"hole_cards": ["Ah", "Kh"], "board": ["3h", "9h", "Td"], "bet_to_call": 20, "pot": 200}
+Response: {"action": "call", "amount": 20, "message": "Chasing the nut flush with good odds."}
+
+Example 3 (The Nuts / Unbeatable hand -> Value Bet/All-in):
+Input State Snippet: {"hole_cards": ["As", "Ks"], "board": ["Js", "Qs", "Ts", "2d", "3c"], "legal_moves": ["check", "bet", "all_in"]}
+Response: {"action": "all_in", "amount": 5000, "message": "Royal Flush. Pay me."}
+
+Now, apply this logic to the current game:
+"""
+
+FEW_SHOT_EXAMPLES_TEXT = """
+Here are examples of how a professional player responds in the required text format:
+
+Example 1 (Weak hand -> Fold):
+Input State Snippet: {"hole_cards": ["7h", "2d"], "bet_to_call": 50}
+Response:
+action: fold
+amount: 0
+message: 7-2 offsuit, easy fold.
+
+Example 2 (Strong draw -> Call):
+Input State Snippet: {"hole_cards": ["Ah", "Kh"], "board": ["3h", "9h", "Td"], "bet_to_call": 20}
+Response:
+action: call
+amount: 20
+message: Calling for the flush draw.
+
+Example 3 (Nuts -> All-in):
+Input State Snippet: {"hole_cards": ["As", "Ks"], "board": ["Js", "Qs", "Ts"]}
+Response:
+action: all_in
+amount: 5000
+message: Royal Flush! All in.
+
+Now, apply this logic to the current game:
+"""
+
+
+
+schema_prompt = (
+    "You are a professional poker player. Analyze the provided game state and return your decision as a valid JSON object. "
+    "Do not include any other text, reasoning, or explanations outside of the JSON object. "
+    "The JSON object must strictly follow this format: {\"action\": \"your_action\", \"amount\": your_amount, \"message\": \"your_comment\"}. "
+    "The message field is public table talk. Every opponent sees it. You may or may not use this to your advantage. "
+    "Remember that other players also may bluff. "
+    "IMPORTANT: Your message MUST be unique and relevant to the CURRENT game state. "
+    "DO NOT copy messages from the examples provided above."
+)
 
 text_schema_prompt = """You are a professional poker player. Analyze the provided game state and return your decision in a strict text format.
 Do not wrap the output in markdown code blocks. Do not add explanations.
@@ -20,20 +76,15 @@ message: [your_comment]
 
 Valid actions are: fold, check, call, bet, raise, all_in.
 The message is public table talk.
-In your game please follow that strategy:"""
+IMPORTANT: Your message MUST be unique and relevant to the CURRENT game state.
+DO NOT copy messages from the examples provided above.
+"""
 
-default_prompt = "play optimally , based on your hand , position and pot odds, play GTO"
+default_prompt = "In your game please follow that strategy: play optimally , based on your hand , position and pot odds, play GTO"
+
 def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_prompt, temperature:float = 1.0) -> dict | None:
     """
     Sends prompt to specified by openRouter LLM model and returns parsed JSON response
-
-    Args:
-        model_id (str): Model name on openRouter (eg. "openai/gpt-4o")
-        prompt_json (dict): Whole JSON object to be sent.
-
-    Returns:
-        dict | None: Dict with action (eg. {"action": "bet", ...}) or
-                     None in case of error.
     """
 
     prompt_content = json.dumps(prompt_json)
@@ -45,6 +96,8 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
         "X-Title": config.APP_TITLE
     }
 
+    full_system_prompt = schema_prompt + "\n\n" + FEW_SHOT_EXAMPLES_JSON + "\n\n" + user_prompt
+
     data = {
         "model": model_id,
         "temperature": temperature,
@@ -52,7 +105,7 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
         "messages": [
             {
                 "role": "system",
-                "content": schema_prompt+user_prompt
+                "content": full_system_prompt
             },
             {
                 "role": "user",
@@ -92,7 +145,7 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
 
             response_data = response.json()
 
-            print(response_data)
+            # print(response_data) # Uncomment for full debug
             llm_response_content = response_data['choices'][0]['message']['content']
 
             print(f"[LLM Manager] Received response: {llm_response_content}")
@@ -125,8 +178,7 @@ def get_llm_action(model_id: str, prompt_json: dict, user_prompt:str = default_p
 def get_llm_action_text(model_id: str, prompt_json: dict, user_prompt: str = default_prompt,
                         temperature: float = 1.0) -> dict | None:
     """
-    NEW FUNCTION: Sends prompt expecting Simple Text response (key:value).
-    Parses the text back into a dictionary compatible with the poker engine.
+    Sends prompt expecting Simple Text response (key:value).
     """
     prompt_content = json.dumps(prompt_json)
 
@@ -137,13 +189,15 @@ def get_llm_action_text(model_id: str, prompt_json: dict, user_prompt: str = def
         "X-Title": config.APP_TITLE
     }
 
+    full_system_prompt = text_schema_prompt + "\n\n" + FEW_SHOT_EXAMPLES_TEXT + "\n\n" + user_prompt
+
     data = {
         "model": model_id,
         "temperature": temperature,
         "messages": [
             {
                 "role": "system",
-                "content": text_schema_prompt + user_prompt
+                "content": full_system_prompt
             },
             {
                 "role": "user",
@@ -211,7 +265,6 @@ def parse_text_response(text: str) -> dict | None:
     action: fold
     amount: 0
     message: some text
-
     Into: {"action": "fold", "amount": 0, "message": "some text"}
     """
     try:
