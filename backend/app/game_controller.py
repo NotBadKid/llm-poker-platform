@@ -8,6 +8,7 @@ class GameController:
         self.execution_event = threading.Event()
         self.execution_event.set()  #Game starts with playing mode
         self.is_paused_flag = False
+        self.is_aborted_flag = False
 
     def pause(self):
         self.is_paused_flag = True
@@ -23,6 +24,11 @@ class GameController:
         what results in a pause in the next check w wait_for_turn.
         """
         self.is_paused_flag = True
+        self.execution_event.set()
+
+    def abort(self):
+        self.is_aborted_flag = True
+        self.is_paused_flag = False
         self.execution_event.set()
 
     def wait_for_turn(self):

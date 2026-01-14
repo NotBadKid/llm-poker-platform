@@ -77,6 +77,23 @@ def step_game(game_id):
         return jsonify({"status": "stepped_forward", "game_id": game_id}), 200
     return jsonify({"error": "Game not found or finished"}), 404
 
+@main_bp.route('/game/<game_id>/stop', methods=['POST'])
+def stop_game(game_id):
+    """
+    Endpoint for immediately stopping the game (User Abort).
+    """
+    controller = get_controller(game_id)
+    if controller:
+        print(f"[Routes] Stopping game {game_id} manually...")
+        controller.abort()
+        return jsonify({
+            "status": "stopping_initiated",
+            "message": "Game is aborting. Final stats will be broadcasted shortly.",
+            "game_id": game_id
+        }), 200
+
+    return jsonify({"error": "Game not found or finished"}), 404
+
 @main_bp.route('/stats', methods=['GET'])
 def get_stats():
     """
