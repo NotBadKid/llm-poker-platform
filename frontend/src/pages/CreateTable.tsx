@@ -37,24 +37,24 @@ const CreateTable = () => {
         },
         {
             id: 2,
-            name: formatModelName(modelsList[1].model_id),
-            model_id: modelsList[1].model_id,
+            name: formatModelName(modelsList[0].model_id),
+            model_id: modelsList[0].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
         },
         {
             id: 3,
-            name: formatModelName(modelsList[2].model_id),
-            model_id: modelsList[2].model_id,
+            name: formatModelName(modelsList[0].model_id),
+            model_id: modelsList[0].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
         },
         {
             id: 4,
-            name: formatModelName(modelsList[3].model_id),
-            model_id: modelsList[3].model_id,
+            name: formatModelName(modelsList[0].model_id),
+            model_id: modelsList[0].model_id,
             temperature: 1,
             user_prompt: "",
             useCustomPrompt: false
