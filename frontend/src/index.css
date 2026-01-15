@@ -67,7 +67,7 @@ body {
 
 @layer components {
     #player-container {
-        @apply rounded-xl px-4 pb-6 pt-3 border bg-linear-to-br from-slate-800 to-slate-900 w-40 md:w-68;
+        @apply rounded-xl px-4 pb-6 pt-3 border bg-linear-to-br from-slate-800 to-slate-900 w-40 md:w-68 transition-all;
 
         h3 {
             @apply text-xl truncate mb-1 font-semibold;
