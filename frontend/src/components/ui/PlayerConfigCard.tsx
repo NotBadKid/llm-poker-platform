@@ -63,7 +63,7 @@ const PlayerConfigCard = ({index, bot, availableModels, onUpdate}: Props) => {
                         className="w-full p-3 rounded-lg cursor-pointer bg-slate-900 border border-slate-600 text-left overflow-hidden flex items-center justify-between outline-none hover:border-purple-500"
                     >
                         <span className="whitespace-nowrap overflow-x-hidden">
-                            {bot.name}
+                            {bot.model_id}
                         </span>
 
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
