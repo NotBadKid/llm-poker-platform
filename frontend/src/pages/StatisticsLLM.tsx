@@ -8,7 +8,7 @@ const StatisticsLLM = () => {
     const [sortParam, setSortParam] = useState<string>("hands_played");
     const [isAscending, setIsAscending] = useState<boolean>(false);
 
-    const API_URL = 'http://localhost:5000';
+    const API_URL = '';
 
     const handleSort = (key: string) => {
         if (sortParam === key) {
