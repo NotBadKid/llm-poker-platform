@@ -1,0 +1,2102 @@
+[
+  {
+    "player_hand": [
+      "8D",
+      "6D"
+    ],
+    "opponent_hand": [
+      "AC",
+      "6H"
+    ],
+    "flop": [
+      "KC",
+      "7C",
+      "4S"
+    ],
+    "turn": [
+      "AD"
+    ],
+    "river": [
+      "TD"
+    ]
+  },
+  {
+    "player_hand": [
+      "JH",
+      "6C"
+    ],
+    "opponent_hand": [
+      "QS",
+      "JS"
+    ],
+    "flop": [
+      "2H",
+      "TS",
+      "TC"
+    ],
+    "turn": [
+      "4C"
+    ],
+    "river": [
+      "5D"
+    ]
+  },
+  {
+    "player_hand": [
+      "KH",
+      "8D"
+    ],
+    "opponent_hand": [
+      "4S",
+      "JC"
+    ],
+    "flop": [
+      "JS",
+      "8H",
+      "2D"
+    ],
+    "turn": [
+      "4D"
+    ],
+    "river": [
+      "2S"
+    ]
+  },
+  {
+    "player_hand": [
+      "2S",
+      "2H"
+    ],
+    "opponent_hand": [
+      "6D",
+      "AH"
+    ],
+    "flop": [
+      "QC",
+      "2C",
+      "3D"
+    ],
+    "turn": [
+      "TD"
+    ],
+    "river": [
+      "9H"
+    ]
+  },
+  {
+    "player_hand": [
+      "KD",
+      "7D"
+    ],
+    "opponent_hand": [
+      "AD",
+      "JD"
+    ],
+    "flop": [
+      "TD",
+      "7S",
+      "7H"
+    ],
+    "turn": [
+      "5H"
+    ],
+    "river": [
+      "8H"
+    ]
+  },
+  {
+    "player_hand": [
+      "8C",
+      "8H"
+    ],
+    "opponent_hand": [
+      "7C",
+      "3H"
+    ],
+    "flop": [
+      "3S",
+      "7D",
+      "2H"
+    ],
+    "turn": [
+      "KH"
+    ],
+    "river": [
+      "5D"
+    ]
+  },
+  {
+    "player_hand": [
+      "4D",
+      "9C"
+    ],
+    "opponent_hand": [
+      "KC",
+      "8S"
+    ],
+    "flop": [
+      "TS",
+      "5C",
+      "7D"
+    ],
+    "turn": [
+      "6H"
+    ],
+    "river": [
+      "3C"
+    ]
+  },
+  {
+    "player_hand": [
+      "AC",
+      "6D"
+    ],
+    "opponent_hand": [
+      "8D",
+      "JH"
+    ],
+    "flop": [
+      "7S",
+      "QD",
+      "4S"
+    ],
+    "turn": [
+      "3H"
+    ],
+    "river": [
+      "6H"
+    ]
+  },
+  {
+    "player_hand": [
+      "JD",
+      "8D"
+    ],
+    "opponent_hand": [
+      "AC",
+      "TD"
+    ],
+    "flop": [
+      "6D",
+      "AD",
+      "5H"
+    ],
+    "turn": [
+      "9C"
+    ],
+    "river": [
+      "KH"
+    ]
+  },
+  {
+    "player_hand": [
+      "KD",
+      "5C"
+    ],
+    "opponent_hand": [
+      "6S",
+      "AC"
+    ],
+    "flop": [
+      "KH",
+      "TH",
+      "8C"
+    ],
+    "turn": [
+      "8D"
+    ],
+    "river": [
+      "QS"
+    ]
+  },
+  {
+    "player_hand": [
+      "3D",
+      "KS"
+    ],
+    "opponent_hand": [
+      "TS",
+      "8C"
+    ],
+    "flop": [
+      "KH",
+      "6C",
+      "KD"
+    ],
+    "turn": [
+      "QH"
+    ],
+    "river": [
+      "QC"
+    ]
+  },
+  {
+    "player_hand": [
+      "4C",
+      "2C"
+    ],
+    "opponent_hand": [
+      "8D",
+      "KC"
+    ],
+    "flop": [
+      "7D",
+      "3C",
+      "9D"
+    ],
+    "turn": [
+      "6D"
+    ],
+    "river": [
+      "6S"
+    ]
+  },
+  {
+    "player_hand": [
+      "QC",
+      "JD"
+    ],
+    "opponent_hand": [
+      "TD",
+      "8H"
+    ],
+    "flop": [
+      "JH",
+      "9C",
+      "7S"
+    ],
+    "turn": [
+      "QS"
+    ],
+    "river": [
+      "3S"
+    ]
+  },
+  {
+    "player_hand": [
+      "5D",
+      "JC"
+    ],
+    "opponent_hand": [
+      "JH",
+      "QC"
+    ],
+    "flop": [
+      "9H",
+      "QS",
+      "3C"
+    ],
+    "turn": [
+      "TD"
+    ],
+    "river": [
+      "KC"
+    ]
+  },
+  {
+    "player_hand": [
+      "TC",
+      "JS"
+    ],
+    "opponent_hand": [
+      "4D",
+      "2D"
+    ],
+    "flop": [
+      "7S",
+      "TH",
+      "9C"
+    ],
+    "turn": [
+      "3S"
+    ],
+    "river": [
+      "8S"
+    ]
+  },
+  {
+    "player_hand": [
+      "9D",
+      "2S"
+    ],
+    "opponent_hand": [
+      "AD",
+      "3C"
+    ],
+    "flop": [
+      "8C",
+      "4H",
+      "QC"
+    ],
+    "turn": [
+      "9S"
+    ],
+    "river": [
+      "AH"
+    ]
+  },
+  {
+    "player_hand": [
+      "4C",
+      "QH"
+    ],
+    "opponent_hand": [
+      "JH",
+      "AS"
+    ],
+    "flop": [
+      "QC",
+      "2S",
+      "6C"
+    ],
+    "turn": [
+      "JD"
+    ],
+    "river": [
+      "6H"
+    ]
+  },
+  {
+    "player_hand": [
+      "AH",
+      "4D"
+    ],
+    "opponent_hand": [
+      "TD",
+      "TH"
+    ],
+    "flop": [
+      "AC",
+      "KS",
+      "KC"
+    ],
+    "turn": [
+      "AD"
+    ],
+    "river": [
+      "6C"
+    ]
+  },
+  {
+    "player_hand": [
+      "8H",
+      "8C"
+    ],
+    "opponent_hand": [
+      "2D",
+      "JD"
+    ],
+    "flop": [
+      "KC",
+      "AS",
+      "6S"
+    ],
+    "turn": [
+      "AD"
+    ],
+    "river": [
+      "TC"
+    ]
+  },
+  {
+    "player_hand": [
+      "7H",
+      "TH"
+    ],
+    "opponent_hand": [
+      "6S",
+      "KD"
+    ],
+    "flop": [
+      "QS",
+      "JC",
+      "7D"
+    ],
+    "turn": [
+      "8H"
+    ],
+    "river": [
+      "JH"
+    ]
+  },
+  {
+    "player_hand": [
+      "5D",
+      "TH"
+    ],
+    "opponent_hand": [
+      "4H",
+      "3C"
+    ],
+    "flop": [
+      "JH",
+      "7H",
+      "JC"
+    ],
+    "turn": [
+      "AD"
+    ],
+    "river": [
+      "AH"
+    ]
+  },
+  {
+    "player_hand": [
+      "6D",
+      "8S"
+    ],
+    "opponent_hand": [
+      "QH",
+      "JS"
+    ],
+    "flop": [
+      "4S",
+      "QS",
+      "6S"
+    ],
+    "turn": [
+      "KH"
+    ],
+    "river": [
+      "3C"
+    ]
+  },
+  {
+    "player_hand": [
+      "4C",
+      "KH"
+    ],
+    "opponent_hand": [
+      "QD",
+      "4H"
+    ],
+    "flop": [
+      "JC",
+      "2S",
+      "8C"
+    ],
+    "turn": [
+      "7D"
+    ],
+    "river": [
+      "9D"
+    ]
+  },
+  {
+    "player_hand": [
+      "6H",
+      "6D"
+    ],
+    "opponent_hand": [
+      "9H",
+      "5C"
+    ],
+    "flop": [
+      "KD",
+      "7C",
+      "7H"
+    ],
+    "turn": [
+      "7S"
+    ],
+    "river": [
+      "6C"
+    ]
+  },
+  {
+    "player_hand": [
+      "3S",
+      "JD"
+    ],
+    "opponent_hand": [
+      "6C",
+      "9C"
+    ],
+    "flop": [
+      "KC",
+      "TD",
+      "8C"
+    ],
+    "turn": [
+      "KD"
+    ],
+    "river": [
+      "JS"
+    ]
+  },
+  {
+    "player_hand": [
+      "7C",
+      "KD"
+    ],
+    "opponent_hand": [
+      "9S",
+      "AD"
+    ],
+    "flop": [
+      "AC",
+      "5D",
+      "JD"
+    ],
+    "turn": [
+      "TC"
+    ],
+    "river": [
+      "2S"
+    ]
+  },
+  {
+    "player_hand": [
+      "QS",
+      "8C"
+    ],
+    "opponent_hand": [
+      "8S",
+      "5C"
+    ],
+    "flop": [
+      "TC",
+      "AS",
+      "7C"
+    ],
+    "turn": [
+      "AD"
+    ],
+    "river": [
+      "2C"
+    ]
+  },
+  {
+    "player_hand": [
+      "JH",
+      "5C"
+    ],
+    "opponent_hand": [
+      "5D",
+      "9D"
+    ],
+    "flop": [
+      "9H",
+      "3S",
+      "QH"
+    ],
+    "turn": [
+      "AD"
+    ],
+    "river": [
+      "TD"
+    ]
+  },
+  {
+    "player_hand": [
+      "3C",
+      "3S"
+    ],
+    "opponent_hand": [
+      "QC",
+      "6H"
+    ],
+    "flop": [
+      "AD",
+      "8S",
+      "2S"
+    ],
+    "turn": [
+      "4S"
+    ],
+    "river": [
+      "4D"
+    ]
+  },
+  {
+    "player_hand": [
+      "QH",
+      "3H"
+    ],
+    "opponent_hand": [
+      "4C",
+      "AS"
+    ],
+    "flop": [
+      "4H",
+      "3S",
+      "TS"
+    ],
+    "turn": [
+      "KD"
+    ],
+    "river": [
+      "5C"
+    ]
+  },
+  {
+    "player_hand": [
+      "4D",
+      "4H"
+    ],
+    "opponent_hand": [
+      "TD",
+      "6S"
+    ],
+    "flop": [
+      "KS",
+      "2C",
+      "2S"
+    ],
+    "turn": [
+      "9D"
+    ],
+    "river": [
+      "6D"
+    ]
+  },
+  {
+    "player_hand": [
+      "QS",
+      "4S"
+    ],
+    "opponent_hand": [
+      "6C",
+      "TS"
+    ],
+    "flop": [
+      "9H",
+      "JD",
+      "7S"
+    ],
+    "turn": [
+      "4H"
+    ],
+    "river": [
+      "8H"
+    ]
+  },
+  {
+    "player_hand": [
+      "9C",
+      "QD"
+    ],
+    "opponent_hand": [
+      "KC",
+      "8H"
+    ],
+    "flop": [
+      "6D",
+      "4S",
+      "AC"
+    ],
+    "turn": [
+      "8C"
+    ],
+    "river": [
+      "9S"
+    ]
+  },
+  {
+    "player_hand": [
+      "6S",
+      "4C"
+    ],
+    "opponent_hand": [
+      "9D",
+      "AH"
+    ],
+    "flop": [
+      "6H",
+      "JS",
+      "5C"
+    ],
+    "turn": [
+      "8S"
+    ],
+    "river": [
+      "TS"
+    ]
+  },
+  {
+    "player_hand": [
+      "2H",
+      "8C"
+    ],
+    "opponent_hand": [
+      "8S",
+      "KH"
+    ],
+    "flop": [
+      "JC",
+      "5C",
+      "QH"
+    ],
+    "turn": [
+      "8H"
+    ],
+    "river": [
+      "JD"
+    ]
+  },
+  {
+    "player_hand": [
+      "8S",
+      "TH"
+    ],
+    "opponent_hand": [
+      "4D",
+      "5H"
+    ],
+    "flop": [
+      "5D",
+      "AD",
+      "2D"
+    ],
+    "turn": [
+      "2S"
+    ],
+    "river": [
+      "7S"
+    ]
+  },
+  {
+    "player_hand": [
+      "KS",
+      "2S"
+    ],
+    "opponent_hand": [
+      "4C",
+      "3C"
+    ],
+    "flop": [
+      "6C",
+      "4D",
+      "9D"
+    ],
+    "turn": [
+      "2H"
+    ],
+    "river": [
+      "KD"
+    ]
+  },
+  {
+    "player_hand": [
+      "7C",
+      "7D"
+    ],
+    "opponent_hand": [
+      "2H",
+      "3D"
+    ],
+    "flop": [
+      "QC",
+      "4C",
+      "5S"
+    ],
+    "turn": [
+      "9H"
+    ],
+    "river": [
+      "JD"
+    ]
+  },
+  {
+    "player_hand": [
+      "KH",
+      "KC"
+    ],
+    "opponent_hand": [
+      "JC",
+      "6S"
+    ],
+    "flop": [
+      "QS",
+      "JS",
+      "TD"
+    ],
+    "turn": [
+      "5C"
+    ],
+    "river": [
+      "2D"
+    ]
+  },
+  {
+    "player_hand": [
+      "6H",
+      "2C"
+    ],
+    "opponent_hand": [
+      "5S",
+      "QH"
+    ],
+    "flop": [
+      "5C",
+      "8D",
+      "KS"
+    ],
+    "turn": [
+      "3D"
+    ],
+    "river": [
+      "AS"
+    ]
+  },
+  {
+    "player_hand": [
+      "6H",
+      "6S"
+    ],
+    "opponent_hand": [
+      "QS",
+      "7S"
+    ],
+    "flop": [
+      "7H",
+      "6D",
+      "KS"
+    ],
+    "turn": [
+      "TS"
+    ],
+    "river": [
+      "2S"
+    ]
+  },
+  {
+    "player_hand": [
+      "5D",
+      "4H"
+    ],
+    "opponent_hand": [
+      "AH",
+      "5S"
+    ],
+    "flop": [
+      "QH",
+      "4D",
+      "TC"
+    ],
+    "turn": [
+      "2H"
+    ],
+    "river": [
+      "3C"
+    ]
+  },
+  {
+    "player_hand": [
+      "TS",
+      "4C"
+    ],
+    "opponent_hand": [
+      "4D",
+      "3D"
+    ],
+    "flop": [
+      "TD",
+      "KS",
+      "9C"
+    ],
+    "turn": [
+      "TC"
+    ],
+    "river": [
+      "KH"
+    ]
+  },
+  {
+    "player_hand": [
+      "6C",
+      "9H"
+    ],
+    "opponent_hand": [
+      "KD",
+      "2C"
+    ],
+    "flop": [
+      "TD",
+      "7D",
+      "2H"
+    ],
+    "turn": [
+      "KC"
+    ],
+    "river": [
+      "KH"
+    ]
+  },
+  {
+    "player_hand": [
+      "JD",
+      "8S"
+    ],
+    "opponent_hand": [
+      "6H",
+      "TD"
+    ],
+    "flop": [
+      "7D",
+      "4S",
+      "4D"
+    ],
+    "turn": [
+      "6S"
+    ],
+    "river": [
+      "6D"
+    ]
+  },
+  {
+    "player_hand": [
+      "5C",
+      "7H"
+    ],
+    "opponent_hand": [
+      "4H",
+      "7C"
+    ],
+    "flop": [
+      "QH",
+      "8D",
+      "QS"
+    ],
+    "turn": [
+      "QD"
+    ],
+    "river": [
+      "5S"
+    ]
+  },
+  {
+    "player_hand": [
+      "KC",
+      "5D"
+    ],
+    "opponent_hand": [
+      "8S",
+      "9D"
+    ],
+    "flop": [
+      "AD",
+      "3D",
+      "QH"
+    ],
+    "turn": [
+      "TH"
+    ],
+    "river": [
+      "7D"
+    ]
+  },
+  {
+    "player_hand": [
+      "6D",
+      "KC"
+    ],
+    "opponent_hand": [
+      "8C",
+      "TD"
+    ],
+    "flop": [
+      "8D",
+      "3D",
+      "QS"
+    ],
+    "turn": [
+      "AC"
+    ],
+    "river": [
+      "TH"
+    ]
+  },
+  {
+    "player_hand": [
+      "5C",
+      "2S"
+    ],
+    "opponent_hand": [
+      "5H",
+      "TH"
+    ],
+    "flop": [
+      "8C",
+      "3D",
+      "2D"
+    ],
+    "turn": [
+      "8S"
+    ],
+    "river": [
+      "TD"
+    ]
+  },
+  {
+    "player_hand": [
+      "2H",
+      "JH"
+    ],
+    "opponent_hand": [
+      "5H",
+      "4D"
+    ],
+    "flop": [
+      "5C",
+      "KC",
+      "8H"
+    ],
+    "turn": [
+      "5S"
+    ],
+    "river": [
+      "8S"
+    ]
+  },
+  {
+    "player_hand": [
+      "KH",
+      "4H"
+    ],
+    "opponent_hand": [
+      "7D",
+      "3C"
+    ],
+    "flop": [
+      "QC",
+      "3S",
+      "9S"
+    ],
+    "turn": [
+      "QS"
+    ],
+    "river": [
+      "9C"
+    ]
+  },
+  {
+    "player_hand": [
+      "KS",
+      "JH"
+    ],
+    "opponent_hand": [
+      "QD",
+      "2S"
+    ],
+    "flop": [
+      "3D",
+      "6S",
+      "AS"
+    ],
+    "turn": [
+      "TD"
+    ],
+    "river": [
+      "8S"
+    ]
+  },
+  {
+    "player_hand": [
+      "5S",
+      "3S"
+    ],
+    "opponent_hand": [
+      "2C",
+      "4C"
+    ],
+    "flop": [
+      "4S",
+      "3C",
+      "3H"
+    ],
+    "turn": [
+      "5C"
+    ],
+    "river": [
+      "QC"
+    ]
+  },
+  {
+    "player_hand": [
+      "AH",
+      "6C"
+    ],
+    "opponent_hand": [
+      "7D",
+      "6D"
+    ],
+    "flop": [
+      "TD",
+      "JH",
+      "5S"
+    ],
+    "turn": [
+      "7S"
+    ],
+    "river": [
+      "JD"
+    ]
+  },
+  {
+    "player_hand": [
+      "9S",
+      "4S"
+    ],
+    "opponent_hand": [
+      "AC",
+      "JH"
+    ],
+    "flop": [
+      "8H",
+      "JS",
+      "AH"
+    ],
+    "turn": [
+      "QH"
+    ],
+    "river": [
+      "AD"
+    ]
+  },
+  {
+    "player_hand": [
+      "4D",
+      "KS"
+    ],
+    "opponent_hand": [
+      "TH",
+      "KH"
+    ],
+    "flop": [
+      "4H",
+      "3H",
+      "JS"
+    ],
+    "turn": [
+      "8C"
+    ],
+    "river": [
+      "3S"
+    ]
+  },
+  {
+    "player_hand": [
+      "7S",
+      "AS"
+    ],
+    "opponent_hand": [
+      "4D",
+      "9S"
+    ],
+    "flop": [
+      "8H",
+      "9C",
+      "7C"
+    ],
+    "turn": [
+      "6C"
+    ],
+    "river": [
+      "2H"
+    ]
+  },
+  {
+    "player_hand": [
+      "5D",
+      "6C"
+    ],
+    "opponent_hand": [
+      "3D",
+      "8D"
+    ],
+    "flop": [
+      "3C",
+      "7S",
+      "2D"
+    ],
+    "turn": [
+      "4C"
+    ],
+    "river": [
+      "QH"
+    ]
+  },
+  {
+    "player_hand": [
+      "2S",
+      "3H"
+    ],
+    "opponent_hand": [
+      "3C",
+      "KD"
+    ],
+    "flop": [
+      "3D",
+      "7H",
+      "KC"
+    ],
+    "turn": [
+      "7D"
+    ],
+    "river": [
+      "TD"
+    ]
+  },
+  {
+    "player_hand": [
+      "7H",
+      "AS"
+    ],
+    "opponent_hand": [
+      "JH",
+      "6D"
+    ],
+    "flop": [
+      "KC",
+      "7C",
+      "7D"
+    ],
+    "turn": [
+      "3D"
+    ],
+    "river": [
+      "6C"
+    ]
+  },
+  {
+    "player_hand": [
+      "QC",
+      "AC"
+    ],
+    "opponent_hand": [
+      "JD",
+      "QD"
+    ],
+    "flop": [
+      "9S",
+      "6H",
+      "4D"
+    ],
+    "turn": [
+      "6S"
+    ],
+    "river": [
+      "7S"
+    ]
+  },
+  {
+    "player_hand": [
+      "KC",
+      "AD"
+    ],
+    "opponent_hand": [
+      "AH",
+      "5H"
+    ],
+    "flop": [
+      "KS",
+      "QS",
+      "9C"
+    ],
+    "turn": [
+      "8S"
+    ],
+    "river": [
+      "QD"
+    ]
+  },
+  {
+    "player_hand": [
+      "JS",
+      "6C"
+    ],
+    "opponent_hand": [
+      "8H",
+      "JH"
+    ],
+    "flop": [
+      "TH",
+      "AH",
+      "3S"
+    ],
+    "turn": [
+      "5H"
+    ],
+    "river": [
+      "7S"
+    ]
+  },
+  {
+    "player_hand": [
+      "AC",
+      "4D"
+    ],
+    "opponent_hand": [
+      "2H",
+      "QS"
+    ],
+    "flop": [
+      "KD",
+      "5D",
+      "3D"
+    ],
+    "turn": [
+      "QC"
+    ],
+    "river": [
+      "JS"
+    ]
+  },
+  {
+    "player_hand": [
+      "6D",
+      "2D"
+    ],
+    "opponent_hand": [
+      "3S",
+      "9D"
+    ],
+    "flop": [
+      "KC",
+      "JS",
+      "9H"
+    ],
+    "turn": [
+      "AC"
+    ],
+    "river": [
+      "8D"
+    ]
+  },
+  {
+    "player_hand": [
+      "QH",
+      "TD"
+    ],
+    "opponent_hand": [
+      "9D",
+      "9H"
+    ],
+    "flop": [
+      "7D",
+      "9S",
+      "JC"
+    ],
+    "turn": [
+      "5C"
+    ],
+    "river": [
+      "2H"
+    ]
+  },
+  {
+    "player_hand": [
+      "4C",
+      "9C"
+    ],
+    "opponent_hand": [
+      "7C",
+      "KS"
+    ],
+    "flop": [
+      "9S",
+      "8S",
+      "5C"
+    ],
+    "turn": [
+      "AC"
+    ],
+    "river": [
+      "8D"
+    ]
+  },
+  {
+    "player_hand": [
+      "AD",
+      "8S"
+    ],
+    "opponent_hand": [
+      "KD",
+      "TD"
+    ],
+    "flop": [
+      "KS",
+      "AH",
+      "5H"
+    ],
+    "turn": [
+      "7S"
+    ],
+    "river": [
+      "8H"
+    ]
+  },
+  {
+    "player_hand": [
+      "5S",
+      "QH"
+    ],
+    "opponent_hand": [
+      "QC",
+      "4S"
+    ],
+    "flop": [
+      "6S",
+      "AD",
+      "5D"
+    ],
+    "turn": [
+      "4H"
+    ],
+    "river": [
+      "9S"
+    ]
+  },
+  {
+    "player_hand": [
+      "3S",
+      "4D"
+    ],
+    "opponent_hand": [
+      "JS",
+      "AC"
+    ],
+    "flop": [
+      "4C",
+      "4H",
+      "QS"
+    ],
+    "turn": [
+      "9H"
+    ],
+    "river": [
+      "QH"
+    ]
+  },
+  {
+    "player_hand": [
+      "KH",
+      "6D"
+    ],
+    "opponent_hand": [
+      "4C",
+      "JC"
+    ],
+    "flop": [
+      "6H",
+      "6C",
+      "3D"
+    ],
+    "turn": [
+      "5H"
+    ],
+    "river": [
+      "3C"
+    ]
+  },
+  {
+    "player_hand": [
+      "9H",
+      "3C"
+    ],
+    "opponent_hand": [
+      "6H",
+      "JD"
+    ],
+    "flop": [
+      "AH",
+      "JH",
+      "7H"
+    ],
+    "turn": [
+      "AS"
+    ],
+    "river": [
+      "AD"
+    ]
+  },
+  {
+    "player_hand": [
+      "3C",
+      "8S"
+    ],
+    "opponent_hand": [
+      "KC",
+      "8H"
+    ],
+    "flop": [
+      "TC",
+      "QC",
+      "3H"
+    ],
+    "turn": [
+      "AC"
+    ],
+    "river": [
+      "AD"
+    ]
+  },
+  {
+    "player_hand": [
+      "QD",
+      "AS"
+    ],
+    "opponent_hand": [
+      "JS",
+      "KS"
+    ],
+    "flop": [
+      "KC",
+      "7S",
+      "9C"
+    ],
+    "turn": [
+      "5H"
+    ],
+    "river": [
+      "JH"
+    ]
+  },
+  {
+    "player_hand": [
+      "5H",
+      "QC"
+    ],
+    "opponent_hand": [
+      "KS",
+      "5C"
+    ],
+    "flop": [
+      "9S",
+      "JH",
+      "9D"
+    ],
+    "turn": [
+      "4C"
+    ],
+    "river": [
+      "AS"
+    ]
+  },
+  {
+    "player_hand": [
+      "7C",
+      "AD"
+    ],
+    "opponent_hand": [
+      "QD",
+      "TD"
+    ],
+    "flop": [
+      "JC",
+      "6D",
+      "QH"
+    ],
+    "turn": [
+      "7D"
+    ],
+    "river": [
+      "5H"
+    ]
+  },
+  {
+    "player_hand": [
+      "5S",
+      "KC"
+    ],
+    "opponent_hand": [
+      "AD",
+      "QH"
+    ],
+    "flop": [
+      "KD",
+      "8D",
+      "AS"
+    ],
+    "turn": [
+      "7C"
+    ],
+    "river": [
+      "7D"
+    ]
+  },
+  {
+    "player_hand": [
+      "4D",
+      "8D"
+    ],
+    "opponent_hand": [
+      "AD",
+      "QD"
+    ],
+    "flop": [
+      "9D",
+      "7D",
+      "QC"
+    ],
+    "turn": [
+      "6S"
+    ],
+    "river": [
+      "8H"
+    ]
+  },
+  {
+    "player_hand": [
+      "QC",
+      "JC"
+    ],
+    "opponent_hand": [
+      "QS",
+      "KH"
+    ],
+    "flop": [
+      "AC",
+      "JD",
+      "4S"
+    ],
+    "turn": [
+      "JS"
+    ],
+    "river": [
+      "3C"
+    ]
+  },
+  {
+    "player_hand": [
+      "AH",
+      "7S"
+    ],
+    "opponent_hand": [
+      "JD",
+      "9H"
+    ],
+    "flop": [
+      "8C",
+      "AC",
+      "3D"
+    ],
+    "turn": [
+      "JS"
+    ],
+    "river": [
+      "KS"
+    ]
+  },
+  {
+    "player_hand": [
+      "9C",
+      "2C"
+    ],
+    "opponent_hand": [
+      "AS",
+      "8D"
+    ],
+    "flop": [
+      "4C",
+      "JD",
+      "JH"
+    ],
+    "turn": [
+      "KH"
+    ],
+    "river": [
+      "7S"
+    ]
+  },
+  {
+    "player_hand": [
+      "9D",
+      "9H"
+    ],
+    "opponent_hand": [
+      "JS",
+      "5C"
+    ],
+    "flop": [
+      "9S",
+      "7H",
+      "AC"
+    ],
+    "turn": [
+      "5H"
+    ],
+    "river": [
+      "KH"
+    ]
+  },
+  {
+    "player_hand": [
+      "JH",
+      "6S"
+    ],
+    "opponent_hand": [
+      "9S",
+      "9D"
+    ],
+    "flop": [
+      "9C",
+      "QD",
+      "AD"
+    ],
+    "turn": [
+      "KS"
+    ],
+    "river": [
+      "3H"
+    ]
+  },
+  {
+    "player_hand": [
+      "AD",
+      "7D"
+    ],
+    "opponent_hand": [
+      "6H",
+      "9S"
+    ],
+    "flop": [
+      "4S",
+      "TD",
+      "2C"
+    ],
+    "turn": [
+      "8C"
+    ],
+    "river": [
+      "7C"
+    ]
+  },
+  {
+    "player_hand": [
+      "KH",
+      "JC"
+    ],
+    "opponent_hand": [
+      "KC",
+      "AH"
+    ],
+    "flop": [
+      "4D",
+      "TS",
+      "QD"
+    ],
+    "turn": [
+      "2D"
+    ],
+    "river": [
+      "KS"
+    ]
+  },
+  {
+    "player_hand": [
+      "3C",
+      "3S"
+    ],
+    "opponent_hand": [
+      "KS",
+      "2S"
+    ],
+    "flop": [
+      "9H",
+      "6C",
+      "2D"
+    ],
+    "turn": [
+      "AH"
+    ],
+    "river": [
+      "TS"
+    ]
+  },
+  {
+    "player_hand": [
+      "5D",
+      "2D"
+    ],
+    "opponent_hand": [
+      "9H",
+      "TH"
+    ],
+    "flop": [
+      "QH",
+      "6D",
+      "TD"
+    ],
+    "turn": [
+      "7H"
+    ],
+    "river": [
+      "8H"
+    ]
+  },
+  {
+    "player_hand": [
+      "7C",
+      "6C"
+    ],
+    "opponent_hand": [
+      "JH",
+      "QH"
+    ],
+    "flop": [
+      "AS",
+      "8H",
+      "JC"
+    ],
+    "turn": [
+      "6D"
+    ],
+    "river": [
+      "2H"
+    ]
+  },
+  {
+    "player_hand": [
+      "8D",
+      "QH"
+    ],
+    "opponent_hand": [
+      "TS",
+      "9D"
+    ],
+    "flop": [
+      "5C",
+      "6C",
+      "7C"
+    ],
+    "turn": [
+      "6H"
+    ],
+    "river": [
+      "4C"
+    ]
+  },
+  {
+    "player_hand": [
+      "JC",
+      "2D"
+    ],
+    "opponent_hand": [
+      "5D",
+      "2H"
+    ],
+    "flop": [
+      "TS",
+      "8C",
+      "9S"
+    ],
+    "turn": [
+      "KS"
+    ],
+    "river": [
+      "AS"
+    ]
+  },
+  {
+    "player_hand": [
+      "4D",
+      "3D"
+    ],
+    "opponent_hand": [
+      "8D",
+      "9C"
+    ],
+    "flop": [
+      "5C",
+      "7H",
+      "TD"
+    ],
+    "turn": [
+      "7D"
+    ],
+    "river": [
+      "9S"
+    ]
+  },
+  {
+    "player_hand": [
+      "8D",
+      "AD"
+    ],
+    "opponent_hand": [
+      "4H",
+      "7C"
+    ],
+    "flop": [
+      "5S",
+      "JH",
+      "TD"
+    ],
+    "turn": [
+      "TH"
+    ],
+    "river": [
+      "KD"
+    ]
+  },
+  {
+    "player_hand": [
+      "6S",
+      "9H"
+    ],
+    "opponent_hand": [
+      "6D",
+      "AH"
+    ],
+    "flop": [
+      "5S",
+      "7S",
+      "TS"
+    ],
+    "turn": [
+      "AC"
+    ],
+    "river": [
+      "KC"
+    ]
+  },
+  {
+    "player_hand": [
+      "KH",
+      "JH"
+    ],
+    "opponent_hand": [
+      "QH",
+      "8C"
+    ],
+    "flop": [
+      "3H",
+      "KC",
+      "5H"
+    ],
+    "turn": [
+      "3S"
+    ],
+    "river": [
+      "QS"
+    ]
+  },
+  {
+    "player_hand": [
+      "4S",
+      "4D"
+    ],
+    "opponent_hand": [
+      "KS",
+      "5S"
+    ],
+    "flop": [
+      "JD",
+      "3D",
+      "9C"
+    ],
+    "turn": [
+      "7S"
+    ],
+    "river": [
+      "6H"
+    ]
+  },
+  {
+    "player_hand": [
+      "KC",
+      "6D"
+    ],
+    "opponent_hand": [
+      "AD",
+      "4S"
+    ],
+    "flop": [
+      "JH",
+      "KD",
+      "7S"
+    ],
+    "turn": [
+      "JS"
+    ],
+    "river": [
+      "QS"
+    ]
+  },
+  {
+    "player_hand": [
+      "9C",
+      "KC"
+    ],
+    "opponent_hand": [
+      "QC",
+      "9H"
+    ],
+    "flop": [
+      "TC",
+      "6C",
+      "3S"
+    ],
+    "turn": [
+      "3C"
+    ],
+    "river": [
+      "8C"
+    ]
+  },
+  {
+    "player_hand": [
+      "TH",
+      "JD"
+    ],
+    "opponent_hand": [
+      "KD",
+      "AC"
+    ],
+    "flop": [
+      "4H",
+      "AH",
+      "2D"
+    ],
+    "turn": [
+      "8H"
+    ],
+    "river": [
+      "4S"
+    ]
+  },
+  {
+    "player_hand": [
+      "5D",
+      "KH"
+    ],
+    "opponent_hand": [
+      "6H",
+      "AD"
+    ],
+    "flop": [
+      "3S",
+      "7D",
+      "8S"
+    ],
+    "turn": [
+      "3C"
+    ],
+    "river": [
+      "JS"
+    ]
+  },
+  {
+    "player_hand": [
+      "TS",
+      "6S"
+    ],
+    "opponent_hand": [
+      "4D",
+      "9S"
+    ],
+    "flop": [
+      "3C",
+      "6H",
+      "JS"
+    ],
+    "turn": [
+      "3D"
+    ],
+    "river": [
+      "7C"
+    ]
+  }
+]
