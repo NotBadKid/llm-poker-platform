@@ -5,7 +5,7 @@ import itertools
 import uuid
 import sys
 from copy import deepcopy
-from pokerkit import Card, Deck
+from pokerkit import Card, Deck, Automation
 
 # === DB INTEGRATION ===
 try:
@@ -26,12 +26,11 @@ from app.poker.poker_engine import play_single_hand, LLMFailure
 # ==========================================
 
 API_KEYS = [
-    # Twoje klucze
-    "sk-or-v1-...",
+    "",
 ]
 
 HAND_DELAY_SECONDS = 0.5
-HANDS_PER_MATCH = 100
+HANDS_PER_MATCH = 2
 INITIAL_STACK = 10000
 BLINDS = (50, 100)
 
@@ -39,7 +38,7 @@ PLAYERS = [
     {
         "id": "p1_conservative",
         "name": "Conservative Bot",
-        "model": "mistralai/mistral-7b-instruct:free",
+        "model": "mistralai/devstral-2512:free",
         "prompt": "You are a tight-passive player. Only play strong hands (Pairs, AK, AQ). Fold everything else.",
         "target_vpip": 15.0,
         "temperature": 0.7
@@ -47,7 +46,7 @@ PLAYERS = [
     {
         "id": "p2_aggressive",
         "name": "Aggressive Bot",
-        "model": "mistralai/mistral-7b-instruct:free",
+        "model": "mistralai/devstral-2512:free",
         "prompt": "You are a loose-aggressive player. Bet and raise often. Bluff when you sense weakness.",
         "target_vpip": 40.0,
         "temperature": 1.0
@@ -55,7 +54,7 @@ PLAYERS = [
     {
         "id": "p3_gto",
         "name": "GTO Bot",
-        "model": "mistralai/mistral-7b-instruct:free",
+        "model": "mistralai/devstral-2512:free",
         "prompt": "Play optimally based on GTO principles. Balance your range.",
         "target_vpip": 25.0,
         "temperature": 1.0
@@ -63,7 +62,7 @@ PLAYERS = [
     {
         "id": "p4_random",
         "name": "Wild Bot",
-        "model": "mistralai/mistral-7b-instruct:free",
+        "model": "mistralai/devstral-2512:free",
         "prompt": "Play unpredictably. Mix your strategies randomly.",
         "target_vpip": 50.0,
         "temperature": 1.2
@@ -91,16 +90,16 @@ class PokerBenchmark:
         self.hand_scenarios_file = "benchmark_decks.json"
         self.results_file = "benchmark_results.json"
 
-    def rotate_api_key(self):
-        self.current_key_index = (self.current_key_index + 1) % len(API_KEYS)
-        config.OPENROUTER_API_KEY = API_KEYS[self.current_key_index]
-        print(f"\n[System] 🔑 Rotating Key. Using Key #{self.current_key_index + 1}")
+#     def rotate_api_key(self):
+#         self.current_key_index = (self.current_key_index + 1) % len(API_KEYS)
+#         config.OPENROUTER_API_KEY = API_KEYS[self.current_key_index]
+#         print(f"\n[System] 🔑 Rotating Key. Using Key #{self.current_key_index + 1}")
 
     def generate_or_load_decks(self):
         try:
             with open(self.hand_scenarios_file, 'r') as f:
                 raw_decks = json.load(f)
-                self.decks = [[Card(c) for c in d] for d in raw_decks]
+                self.decks = [[Card.parse(c) for c in d] for d in raw_decks]
                 print(f"[System] Loaded {len(self.decks)} decks.")
         except FileNotFoundError:
             print(f"[System] Generating {HANDS_PER_MATCH} new decks...")
@@ -122,7 +121,7 @@ class PokerBenchmark:
     def run(self):
         with app.app_context():
             print("=" * 60)
-            print("🚀 STARTING BENCHMARK (Continuous Save Mode)")
+            print("STARTING BENCHMARK (Continuous Save Mode)")
             print("=" * 60)
 
             config.OPENROUTER_API_KEY = API_KEYS[0]
@@ -167,7 +166,7 @@ class PokerBenchmark:
             "initial_stack": INITIAL_STACK, "small_blind": BLINDS[0], "big_blind": BLINDS[1],
             "game_mode": "BENCHMARK_PAIR", "players": [player_a, player_b]
         }
-        db.create_new_game(match_game_id, match_config, match_config['players'])
+#         db.create_new_game(match_game_id, match_config, match_config['players'])
         print(f"  [DB] Match ID: {match_game_id}")
 
         automations = (
@@ -196,25 +195,26 @@ class PokerBenchmark:
             if HAND_DELAY_SECONDS > 0: time.sleep(HAND_DELAY_SECONDS)
 
     def _execute_safe_hand(self, gid, h_num, p_list, p_map, deck, autos):
-        MAX_RETRIES = 3
-        orig_deck = list(deck)
+            MAX_RETRIES = 3
+            orig_deck = list(deck)
 
-        for attempt in range(MAX_RETRIES):
-            try:
-                stacks = [INITIAL_STACK, INITIAL_STACK]
-                res = play_single_hand(gid, p_map, stacks, BLINDS, autos, None, h_num,
-                                       list(orig_deck), is_benchmark=True, structured_output=True)
+            for attempt in range(MAX_RETRIES):
+                try:
+                    stacks = [INITIAL_STACK, INITIAL_STACK]
+                    # Tutaj wywołujemy silnik pokera
+                    res = play_single_hand(gid, p_map, stacks, BLINDS, autos, None, h_num,
+                                           list(orig_deck), is_benchmark=True, structured_output=True)
 
-                self._save_hand_to_db(gid, h_num, res, p_map, stacks)
-                return res
+                    self._save_hand_to_db(gid, h_num, res, p_map, stacks)
+                    return res
 
-            except LLMFailure:
-                self.rotate_api_key()
-                time.sleep(2)
-            except Exception:
-                self.rotate_api_key()
-                time.sleep(2)
-        return None
+                except Exception as e:
+                    # Tutaj usunęliśmy rotację kluczy, ale zostawiamy retry w razie błędu
+                    print(f"    [Warning] Hand failed (Attempt {attempt+1}/{MAX_RETRIES}). Error: {e}")
+                    time.sleep(2)
+
+            print(f"    [Error] Failed hand {h_num} after {MAX_RETRIES} attempts.")
+            return None
 
     def _save_hand_to_db(self, game_id, hand_num, result, player_map, initial_stacks):
         try:
@@ -230,8 +230,8 @@ class PokerBenchmark:
                         hole_cards = initial_hole_cards.get(idx, [])
                         break
 
-                db.log_game_event(game_id, hand_num, event['player'], model_id, hole_cards,
-                                  event['action'], event['amount'], event.get('comment', ''), {})
+#                 db.log_game_event(game_id, hand_num, event['player'], model_id, hole_cards,
+#                                   event['action'], event['amount'], event.get('comment', ''), {})
 
             stats_list = []
             for g_idx, stats in result['hand_stats'].items():
@@ -241,7 +241,7 @@ class PokerBenchmark:
                     'temp': p_data.get('temperature', 1.0),
                     'before': initial_stacks[g_idx], 'after': stats['final_stack']
                 })
-            db.save_hand_result(game_id, hand_num, stats_list)
+#             db.save_hand_result(game_id, hand_num, stats_list)
         except Exception as e:
             print(f"    [DB Error] {e}")
 
