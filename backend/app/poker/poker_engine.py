@@ -69,7 +69,7 @@ def play_single_hand(
         automations: tuple,
         controller,
         hand_number: int,
-        deck: list = None,  # <--- Lista obiektów Card (nie stringów!)
+        deck: list = None,  # <--- Lista obiektów Card z benchmarku
         is_benchmark: bool = False,
         structured_output: bool = False
 ):
@@ -97,34 +97,57 @@ def play_single_hand(
         } for g_idx in active_indices
     }
 
-    # 3. Create PokerKit State
+    # 3. Create PokerKit State (Standard Random Deal)
+    # Używamy poprawnej sygnatury (bez 'deck', bez 'raw_antes' jako osobnego argumentu jeśli tak wynika z Twojej wersji)
+    # Zgodnie z Twoim ostatnim inputem:
     state = NoLimitTexasHoldem.create_state(
         automations,  # 1. automations
         False,  # 2. divmod
         {},  # 3. ante_trimming_status
-        blinds,  # 5. raw_blinds_or_straddles
+        blinds,  # 5. raw_blinds_or_straddles (Przesunięte)
         blinds[1],  # 6. min_bet (Big Blind)
         tuple(pokerkit_stacks),  # 7. raw_starting_stacks
         pokerkit_player_count  # 8. player_count
     )
 
-    # === DECK INJECTION ===
+    # === RIGGING LOGIC (Hand & Deck Overwrite) ===
     if deck is not None:
-        # Nadpisujemy losową talię tą, którą podał benchmark (Rigged Deck)
+        # Benchmark dostarcza talię ułożoną w odwrotnej kolejności rozdawania.
+        # Ostatni element (pop()) to pierwsza karta, która powinna trafić do gracza.
+        # Kolejność: P1_1, P2_1, P1_2, P2_2...
+
+        # 1. Nadpisujemy karty na ręce (Hole Cards)
+        # PokerKit już rozdał losowe karty. My je po prostu podmieniamy.
+
+        cards_per_player = 2
+        for i in range(cards_per_player):
+            for player_idx in range(pokerkit_player_count):
+                if not deck: break  # Safety check
+
+                specific_card = deck.pop()  # Pobieramy kartę ze szczytu ustawionej talii
+
+                # Nadpisujemy kartę w stanie gry
+                # state.hole_cards[player_idx] to lista kart gracza
+                state.hole_cards[player_idx][i] = specific_card
+
+        # 2. Nadpisujemy resztę talii (Flop/Turn/River + Burns)
+        # To co zostało w 'deck' to dokładnie sekwencja boardu przygotowana przez benchmark
         state.deck = deck
-    # ======================
+
+        # print(f"[DEBUG] 🕵️ Rigged Hands & Deck Applied successfully!")
+    # =============================================
 
     # 4. Capture and Log Hole Cards (Dla Monitoringu Benchmarku)
     initial_hole_cards = {}
-    print(f"\n[Poker Engine] --- DEALING HOLE CARDS (Hand {hand_number}) ---")
+    print(f"\n[Poker Engine] --- DEALING HAND #{hand_number} ---")
     for local_i in range(pokerkit_player_count):
-        cards_str = [card_to_str(c) for c in state.hole_cards[local_i]]
-        initial_hole_cards[local_i] = cards_str
+        cards_list = [card_to_str(c) for c in state.hole_cards[local_i]]
+        initial_hole_cards[local_i] = cards_list
 
         global_idx = active_indices[local_i]
         player_name = player_map[global_idx]['name']
-        print(f"  > {player_name} (Seat {global_idx}): {cards_str}")
-    print(f"---------------------------------------------------")
+        print(f"  > {player_name} (Seat {global_idx}) got: {cards_list}")
+    print(f"---------------------------------------------")
 
     game_story = []
     chat_log = []
@@ -132,17 +155,19 @@ def play_single_hand(
     # --- Hand Loop ---
     last_board_len = 0
     while state.status:
-        # Logowanie Boardu w trakcie gry
+        # Logowanie Boardu, żebyś widział czy zgadza się ze scenariuszem
         if len(state.board_cards) > last_board_len:
             new_cards = [str(c) for c in state.board_cards[last_board_len:]]
-            print(f"[Poker Engine] *** BOARD: {new_cards} (Full: {[str(c) for c in state.board_cards]})")
+            print(f"[Poker Engine] *** BOARD UPDATE: {new_cards} (Total: {[str(c) for c in state.board_cards]})")
             last_board_len = len(state.board_cards)
 
         if controller:
-            if controller.is_aborted_flag: return {"status": "aborted"}
+            if controller.is_aborted_flag:
+                return {"status": "aborted"}
             if state.actor_index is not None:
                 controller.wait_for_turn()
-                if controller.is_aborted_flag: return {"status": "aborted"}
+                if controller.is_aborted_flag:
+                    return {"status": "aborted"}
 
         if state.actor_index is None:
             if not is_benchmark: time.sleep(0.1)
@@ -310,12 +335,12 @@ def start_game_session(game_config: dict, game_id: str):
                     })
                 db.save_hand_result(game_id, hands_played, db_stats)
 
-            # Broadcast End of Hand signal (optional update)
+            # Broadcast End of Hand signal
             final_fe_state = build_frontend_state(
                 None, player_map, [], [], {}, len(player_map), current_stacks,
                 result.get("initial_hole_cards", {}), hand_over=True
             )
-            # broadcaster.broadcast_game_state(final_fe_state, game_id)
+            # broadcaster.broadcast_game_state(final_fe_state, game_id) # Optional
 
             time.sleep(5)
 
