@@ -24,8 +24,8 @@ import app.database as db
 import config
 from app.poker.poker_engine import play_single_hand, LLMFailure
 
+
 API_KEYS = [
-    # Wklej swój klucz tutaj
     "",
 ]
 
@@ -33,7 +33,6 @@ HAND_DELAY_SECONDS = 0.5
 INITIAL_STACK = 10000
 BLINDS = (50, 100)
 
-# Scenariusze wczytywane z pliku
 SCENARIOS_FILE = "backend/example_hands.json"
 
 PLAYERS = [
@@ -102,7 +101,11 @@ class PokerBenchmark:
 
     def construct_rigged_deck(self, scenario, swap_players=False):
         """
-        Creates a list of Cards in REVERSE dealing order to match PokerKit stack logic.
+        Constructs the deck stack.
+        PokerKit Stack Order (Top -> Bottom):
+        [P1_1, P2_1, P1_2, P2_2, Burn, Flop1, Flop2, Flop3, Burn, Turn, Burn, River, ...Filler...]
+
+        Because deck.pop() takes from the end, we need to append in REVERSE order of dealing.
         """
         try:
             if not swap_players:
@@ -122,28 +125,30 @@ class PokerBenchmark:
             filler_cards = [c for c in full_deck if c not in used_cards]
             random.shuffle(filler_cards)
 
+            # Preflop: P1, P2, P1, P2
             deal_sequence = []
-
-            # Preflop
             deal_sequence.append(p1_cards[0])
             deal_sequence.append(p2_cards[0])
             deal_sequence.append(p1_cards[1])
             deal_sequence.append(p2_cards[1])
 
-            # Flop (Burn + 3)
+            # Flop: Burn, F1, F2, F3
             deal_sequence.append(filler_cards.pop())
             deal_sequence.extend(board_flop)
 
-            # Turn (Burn + 1)
+            # Turn: Burn, T1
             deal_sequence.append(filler_cards.pop())
             deal_sequence.extend(board_turn)
 
-            # River (Burn + 1)
+            # River: Burn, R1
             deal_sequence.append(filler_cards.pop())
             deal_sequence.extend(board_river)
 
+            # 4. Construct final deck (Stack)
+            # Bottom of deck = Fillers
             final_deck = filler_cards
 
+            # Top of deck = Reversed sequence (so pop() gives first card)
             for card in reversed(deal_sequence):
                 final_deck.append(card)
 
@@ -156,104 +161,6 @@ class PokerBenchmark:
     def save_results_to_file(self):
         with open(self.results_file, "w") as f:
             json.dump(self.results, f, indent=4)
-
-    def run(self):
-        with app.app_context():
-            print("=" * 60)
-            print("STARTING SCENARIO BENCHMARK (Duplicate Poker)")
-            print("=" * 60)
-
-            if API_KEYS:
-                config.OPENROUTER_API_KEY = API_KEYS[0]
-
-            self.load_scenarios_from_json()
-
-            hands_count = len(self.scenarios)
-            pairs = list(itertools.combinations(PLAYERS, 2))
-            total_matches = len(pairs)
-
-            try:
-                for idx, (p1, p2) in enumerate(pairs):
-                    print(f"\n🏆 MATCH {idx + 1}/{total_matches}: {p1['name']} vs {p2['name']}")
-                    self._play_match_series(p1, p2, hands_count)
-
-                    print(f"\n--- INTERMEDIATE RESULTS (After Match {idx + 1}) ---")
-                    self.calculate_and_print_metrics()
-
-            except KeyboardInterrupt:
-                print("\n\n" + "!" * 60)
-                print("🛑 USER INTERRUPT DETECTED")
-                print("!" * 60 + "\n")
-
-            finally:
-                self.calculate_and_print_metrics()
-                print(f"\n[System] Final results saved to {self.results_file}")
-
-    def _play_match_series(self, p1_config, p2_config, hands_count):
-
-        def make_player(p_conf):
-            return {
-                "name": p_conf['name'], "model_id": p_conf['model'],
-                "user_prompt": p_conf['prompt'], "temperature": p_conf.get('temperature', 1.0)
-            }
-
-        player_a = make_player(p1_config)
-        player_b = make_player(p2_config)
-
-        match_game_id = "bench_" + str(uuid.uuid4())[:8]
-        # db.create_new_game(...)
-
-        automations = (
-            Automation.ANTE_POSTING, Automation.BET_COLLECTION, Automation.BLIND_OR_STRADDLE_POSTING,
-            Automation.CARD_BURNING, Automation.HOLE_DEALING, Automation.BOARD_DEALING,
-            Automation.HOLE_CARDS_SHOWING_OR_MUCKING, Automation.HAND_KILLING,
-            Automation.CHIPS_PUSHING, Automation.CHIPS_PULLING, Automation.RUNOUT_COUNT_SELECTION,
-        )
-
-        for i in range(hands_count):
-            scenario = self.scenarios[i]
-
-            # --- PHASE A: Normal ---
-            rigged_deck_a = self.construct_rigged_deck(scenario, swap_players=False)
-            if not rigged_deck_a: continue
-
-            print(f"  Hand {i + 1}/{hands_count} [Normal]...", end="\r")
-            res_a = self._execute_safe_hand(match_game_id, (i * 2) + 1, [player_a, player_b],
-                                            {0: player_a, 1: player_b}, rigged_deck_a, automations)
-            if res_a:
-                self._update_stats([p1_config['id'], p2_config['id']], res_a['hand_stats'])
-
-            # --- PHASE B: Mirror ---
-            rigged_deck_b = self.construct_rigged_deck(scenario, swap_players=True)
-            if not rigged_deck_b: continue
-
-            res_b = self._execute_safe_hand(match_game_id, (i * 2) + 2, [player_b, player_a],
-                                            {0: player_b, 1: player_a}, rigged_deck_b, automations)
-            if res_b:
-                self._update_stats([p2_config['id'], p1_config['id']], res_b['hand_stats'])
-
-            if HAND_DELAY_SECONDS > 0: time.sleep(HAND_DELAY_SECONDS)
-
-    def _execute_safe_hand(self, gid, h_num, p_list, p_map, deck, autos):
-        MAX_RETRIES = 3
-        orig_deck = list(deck)
-
-        for attempt in range(MAX_RETRIES):
-            try:
-                stacks = [INITIAL_STACK, INITIAL_STACK]
-                res = play_single_hand(gid, p_map, stacks, BLINDS, autos, None, h_num,
-                                       list(orig_deck), is_benchmark=True, structured_output=True)
-                return res
-
-            except Exception as e:
-                print(f"    [Warning] Hand failed (Attempt {attempt + 1}/{MAX_RETRIES}). Error: {e}")
-                time.sleep(2)
-
-        print(f"    [Error] Failed hand {h_num} after {MAX_RETRIES} attempts.")
-        return None
-
-    def _save_hand_to_db(self, game_id, hand_num, result, player_map, initial_stacks):
-        pass
 
     def _update_stats(self, p_ids, h_stats):
         for s_idx, pid in enumerate(p_ids):
@@ -293,6 +200,104 @@ class PokerBenchmark:
             print(
                 f"{name:<20} | {bb_100:>9.2f} | {error_rate:>7.2f}% | {vpip_actual:>7.2f}% | {metric_basic:>8.2f} | {metric_paqs:>8.2f}")
         print("=" * 80)
+
+    def _execute_safe_hand(self, gid, h_num, p_list, p_map, deck, autos):
+        MAX_RETRIES = 3
+        orig_deck = list(deck)
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                stacks = [INITIAL_STACK, INITIAL_STACK]
+                res = play_single_hand(gid, p_map, stacks, BLINDS, autos, None, h_num,
+                                       list(orig_deck), is_benchmark=True, structured_output=True)
+                # self._save_hand_to_db(gid, h_num, res, p_map, stacks) # Uncomment if DB needed
+                return res
+            except Exception as e:
+                print(f"    [Warning] Hand failed (Attempt {attempt + 1}/{MAX_RETRIES}). Error: {e}")
+                time.sleep(2)
+        print(f"    [Error] Failed hand {h_num} after {MAX_RETRIES} attempts.")
+        return None
+
+    def _save_hand_to_db(self, game_id, hand_num, result, player_map, initial_stacks):
+        # Implementation hidden for brevity, same as before
+        pass
+
+    def _play_match_series(self, p1_config, p2_config, hands_count):
+        def make_player(p_conf):
+            return {
+                "name": p_conf['name'], "model_id": p_conf['model'],
+                "user_prompt": p_conf['prompt'], "temperature": p_conf.get('temperature', 1.0)
+            }
+
+        player_a = make_player(p1_config)
+        player_b = make_player(p2_config)
+        match_game_id = "bench_" + str(uuid.uuid4())[:8]
+
+        automations = (
+            Automation.ANTE_POSTING, Automation.BET_COLLECTION, Automation.BLIND_OR_STRADDLE_POSTING,
+            Automation.CARD_BURNING, Automation.HOLE_DEALING, Automation.BOARD_DEALING,
+            Automation.HOLE_CARDS_SHOWING_OR_MUCKING, Automation.HAND_KILLING,
+            Automation.CHIPS_PUSHING, Automation.CHIPS_PULLING, Automation.RUNOUT_COUNT_SELECTION,
+        )
+
+        for i in range(hands_count):
+            scenario = self.scenarios[i]
+
+            # --- PHASE A: Normal ---
+            rigged_deck_a = self.construct_rigged_deck(scenario, swap_players=False)
+            if not rigged_deck_a: continue
+
+            # DEBUG: Show whats on top of the deck
+            # top_cards = [str(c) for c in list(rigged_deck_a)[-10:]]
+            # print(f"  [Debug] Deck Top (Deal Order <-): {list(reversed(top_cards))}")
+
+            print(f"  Hand {i + 1}/{hands_count} [Normal]...", end="\r")
+            res_a = self._execute_safe_hand(match_game_id, (i * 2) + 1, [player_a, player_b],
+                                            {0: player_a, 1: player_b}, rigged_deck_a, automations)
+            if res_a:
+                self._update_stats([p1_config['id'], p2_config['id']], res_a['hand_stats'])
+
+            # --- PHASE B: Mirror ---
+            rigged_deck_b = self.construct_rigged_deck(scenario, swap_players=True)
+            if not rigged_deck_b: continue
+
+            res_b = self._execute_safe_hand(match_game_id, (i * 2) + 2, [player_b, player_a],
+                                            {0: player_b, 1: player_a}, rigged_deck_b, automations)
+            if res_b:
+                self._update_stats([p2_config['id'], p1_config['id']], res_b['hand_stats'])
+
+            if HAND_DELAY_SECONDS > 0: time.sleep(HAND_DELAY_SECONDS)
+
+    def run(self):
+        with app.app_context():
+            print("=" * 60)
+            print("STARTING SCENARIO BENCHMARK (Duplicate Poker)")
+            print("=" * 60)
+
+            if API_KEYS:
+                config.OPENROUTER_API_KEY = API_KEYS[0]
+
+            self.load_scenarios_from_json()
+
+            hands_count = len(self.scenarios)
+            pairs = list(itertools.combinations(PLAYERS, 2))
+            total_matches = len(pairs)
+
+            try:
+                for idx, (p1, p2) in enumerate(pairs):
+                    print(f"\n MATCH {idx + 1}/{total_matches}: {p1['name']} vs {p2['name']}")
+                    self._play_match_series(p1, p2, hands_count)
+                    print(f"\n--- INTERMEDIATE RESULTS (After Match {idx + 1}) ---")
+                    self.calculate_and_print_metrics()
+
+            except KeyboardInterrupt:
+                print("\n\n" + "!" * 60)
+                print(" USER INTERRUPT DETECTED")
+                print("!" * 60 + "\n")
+
+            finally:
+                self.calculate_and_print_metrics()
+                print(f"\n[System] Final results saved to {self.results_file}")
 
 
 if __name__ == "__main__":
