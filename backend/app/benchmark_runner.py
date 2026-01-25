@@ -223,6 +223,7 @@ class PokerBenchmark:
         pass
 
     def _play_match_series(self, p1_config, p2_config, hands_count):
+
         def make_player(p_conf):
             return {
                 "name": p_conf['name'], "model_id": p_conf['model'],
@@ -231,7 +232,9 @@ class PokerBenchmark:
 
         player_a = make_player(p1_config)
         player_b = make_player(p2_config)
+
         match_game_id = "bench_" + str(uuid.uuid4())[:8]
+        # db.create_new_game(...)
 
         automations = (
             Automation.ANTE_POSTING, Automation.BET_COLLECTION, Automation.BLIND_OR_STRADDLE_POSTING,
@@ -247,18 +250,14 @@ class PokerBenchmark:
             rigged_deck_a = self.construct_rigged_deck(scenario, swap_players=False)
             if not rigged_deck_a: continue
 
-            # DEBUG: Show whats on top of the deck
-            # top_cards = [str(c) for c in list(rigged_deck_a)[-10:]]
-            # print(f"  [Debug] Deck Top (Deal Order <-): {list(reversed(top_cards))}")
-
             print(f"  Hand {i + 1}/{hands_count} [Normal]...", end="\r")
             res_a = self._execute_safe_hand(match_game_id, (i * 2) + 1, [player_a, player_b],
                                             {0: player_a, 1: player_b}, rigged_deck_a, automations)
             if res_a:
                 self._update_stats([p1_config['id'], p2_config['id']], res_a['hand_stats'])
 
-            # --- PHASE B: Mirror ---
-            rigged_deck_b = self.construct_rigged_deck(scenario, swap_players=True)
+            # --- PHASE B: Mirror (Duplicate) ---
+            rigged_deck_b = self.construct_rigged_deck(scenario, swap_players=False)
             if not rigged_deck_b: continue
 
             res_b = self._execute_safe_hand(match_game_id, (i * 2) + 2, [player_b, player_a],
